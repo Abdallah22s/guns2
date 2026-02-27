@@ -6,10 +6,8 @@ import CustomeNotification from './CustomeNotification';
 import { useGlobalContext } from '../context/store';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { routerBase } from '../config/config';
+import { routerBase, SOCKET_URL } from '../config/config';
 import { useTranslations } from '../translations';
-
-const socket = io("http://localhost:5001");
 
 /**
  * Header Component
@@ -64,13 +62,16 @@ const Header = () => {
     }, [components]);
 
     useEffect(() => {
-        socket.on('connect', () => console.log('Socket connected'));
+        const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
         socket.on('msg', (data) => {
             const updateData = JSON.parse(data);
             setAlerts(updateData);
             handleAddDynamicComponent(JSON.parse(data));
         });
-        return () => socket.disconnect();
+        return () => {
+            socket.off('msg');
+            socket.disconnect();
+        };
     }, []);
 
     return (

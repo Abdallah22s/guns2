@@ -5,8 +5,6 @@ import { useGlobalContext } from '@/app/context/store';
 import axios from 'axios';
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import { io } from "socket.io-client";
-const socket = io("http://localhost:5001");
 
 
 const AllAlerts = () => {

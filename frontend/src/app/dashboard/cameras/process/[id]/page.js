@@ -19,9 +19,11 @@ export default function ProcessVideoPage({ params }) {
   const t = useTranslations(isRTL)
 
   const [selectedFile, setSelectedFile] = useState(null)
-  const [computeDevice, setComputeDevice] = useState('cpu')
+  const [computeDevice, setComputeDevice] = useState('gpu')
+  const [gpuAvailable, setGpuAvailable] = useState(true)
   const [selectedModel, setSelectedModel] = useState('yolov9c')
   const [scanInterval, setScanInterval] = useState(5)
+  const [scanVideoName, setScanVideoName] = useState(`camera_${cameraId}_scan`)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState('')
@@ -39,6 +41,13 @@ export default function ProcessVideoPage({ params }) {
   }
 
   useEffect(() => {
+    axios.get(API_URL + '/camera/cameras/compute-capabilities')
+      .then((response) => {
+        setGpuAvailable(Boolean(response?.data?.gpu_available))
+      })
+      .catch(() => {
+        setGpuAvailable(true)
+      })
     return () => stopPolling()
   }, [])
 
@@ -52,11 +61,21 @@ export default function ProcessVideoPage({ params }) {
       setError(t('noFileSelected'))
       return
     }
+    if (computeDevice === 'gpu' && !gpuAvailable) {
+      setError('GPU is unavailable. Switch to CPU before processing.')
+      return
+    }
+    if (!scanVideoName.trim()) {
+      setError('Please enter a video name before scanning.')
+      return
+    }
 
     setIsProcessing(true)
     setProgress(0)
     setStatus(t('uploading'))
     setError(null)
+    setWeapons([])
+    setShowModal(false)
     stopPolling()
 
     try {
@@ -91,9 +110,8 @@ export default function ProcessVideoPage({ params }) {
           video_link: videoLink,
           compute_device: computeDevice,
           model: selectedModel,
-          scan_profile: 'balanced',
           snapshot_interval_seconds: scanInterval,
-          capture_name: `camera_${cameraId}_scan`
+          capture_name: scanVideoName.trim()
         }
       )
 
@@ -128,22 +146,33 @@ export default function ProcessVideoPage({ params }) {
             } else {
               // Use the scan result directly from job status
               if (jobStatus.weapon_images && jobStatus.weapon_images.length > 0) {
-                const updatedWeapons = jobStatus.weapon_images.map((imageName, index) => ({
-                  image_path: `${jobStatus.scan_name}/${imageName}`,
-                  datetime: new Date().toLocaleString(),
-                  status: t('weaponDetected'),
-                  confidence: Math.round((parseFloat(imageName.split('_')[2].replace('.jpg', '')) * 100))
-                }))
-                setWeapons(updatedWeapons)
-                
-                // Add to alerts and notifications
-                if (window.addWeaponAlert) {
-                  window.addWeaponAlert(updatedWeapons)
+                const verifiedWeaponImages = jobStatus.weapon_images.filter(
+                  (imageName) => typeof imageName === 'string' && imageName.startsWith('weapon_')
+                )
+                if (verifiedWeaponImages.length > 0) {
+                  const updatedWeapons = verifiedWeaponImages.map((imageName, index) => ({
+                    image_path: `${jobStatus.scan_name}/${imageName}`,
+                    datetime: new Date().toLocaleString(),
+                    status: t('weaponDetected'),
+                    confidence: Math.round((parseFloat(imageName.split('_')[2].replace('.jpg', '')) * 100))
+                  }))
+                  setWeapons(updatedWeapons)
+
+                  // Add to alerts and notifications
+                  if (window.addWeaponAlert) {
+                    window.addWeaponAlert(updatedWeapons)
+                  }
+                  // Also trigger custom event for notifications page
+                  window.dispatchEvent(new CustomEvent('weaponAlert', { detail: updatedWeapons }))
+                  setStatus(t('weaponFoundInVideo'))
+                } else {
+                  setWeapons([])
+                  setStatus(t('noWeaponFoundInVideo'))
                 }
-                // Also trigger custom event for notifications page
-                window.dispatchEvent(new CustomEvent('weaponAlert', { detail: updatedWeapons }))
+              } else {
+                setWeapons([])
+                setStatus(t('noWeaponFoundInVideo'))
               }
-              setStatus(t('weaponFoundInVideo'))
             }
           }
         } catch (pollError) {
@@ -201,6 +230,22 @@ export default function ProcessVideoPage({ params }) {
               onChange={setComputeDevice}
               isRTL={isRTL}
             />
+            {computeDevice === 'gpu' && !gpuAvailable && (
+              <p className="text-sm font-semibold text-red">
+                GPU is unavailable. Processing will run on CPU.
+              </p>
+            )}
+
+            <div className="w-full">
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Video Name</label>
+              <input
+                type="text"
+                value={scanVideoName}
+                onChange={(e) => setScanVideoName(e.target.value)}
+                placeholder="Enter a unique name for this scan"
+                className="block w-full rounded-md border-0 px-3.5 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"
+              />
+            </div>
 
             {/* File Upload */}
             <FileUpload 

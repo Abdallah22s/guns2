@@ -12,3 +12,9 @@ paho-mqtt
 flask_socketio
 flask_cors
 Flask-SQLAlchemy
+torch
+torchvision
+ultralytics
+numpy
+werkzeug
+requests

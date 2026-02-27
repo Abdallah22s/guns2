@@ -7,7 +7,7 @@ class Event(db.Model):
     date_time = db.Column(db.String(255))
     Threat_status = db.Column(db.String(255))
     image_path = db.Column(db.String(255))
-    weapon_images=db.Column(db.String(500))
+    weapon_images=db.Column(db.Text)
     timestamp=db.Column(db.DateTime)
 
     def __init__(self, status,video_name,date_time,Threat_status,image_path,weapon_images,timestamp):
@@ -20,7 +20,7 @@ class Event(db.Model):
         self.timestamp=timestamp
 
     def __repr__(self):
-        return f'<Camera {self.name}>'
+        return f'<Event {self.id}>'
     
     def as_dict(self):
         return {

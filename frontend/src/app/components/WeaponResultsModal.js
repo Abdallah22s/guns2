@@ -2,9 +2,7 @@
 
 import { useEffect, useCallback, useState } from 'react'
 import { useTranslations } from '@/app/translations'
-import { API_URL } from '@/app/config/config'
-import axios from 'axios'
-import Image from 'next/image'
+import { PUBLIC_URL } from '@/app/config/config'
 
 /**
  * WeaponResultsModal Component
@@ -119,7 +117,7 @@ export default function WeaponResultsModal({
                   <div className="relative aspect-video bg-gray-200">
                     {weapon.image_path ? (
                       <img 
-                        src={`http://localhost:5000/public/${weapon.image_path}`} 
+                        src={`${PUBLIC_URL}/${weapon.image_path}`} 
                         alt={`${t('weaponDetected')} ${index + 1}`}
                         className="w-full h-full object-cover"
                         loading="lazy"

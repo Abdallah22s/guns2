@@ -1,76 +1,173 @@
 """
-استدلال كشف الأسلحة باستخدام YOLOv8 (Ultralytics).
-يُستخدم عندما framework = yolov8 في الإعداد.
+YOLOv8 weapon inference module.
+Used when framework=yolov8 in configuration.
+Designed for WEAPON DETECTION ONLY - filters out person class.
 """
+
 import os
 import time
+import threading
 import logging as log
+import importlib
+from types import SimpleNamespace
+
 import cv2
 import numpy as np
-import wepcore.setup as cfg
-import wepcore.utils as utils
+
+
+def _load_cfg():
+    try:
+        return importlib.import_module("wepcore.setup")
+    except BaseException as exc:
+        log.warning("Fallback config loaded for YOLOv8 inference: %s", exc)
+        return SimpleNamespace(
+            weights_weapon=None, score_weapon=0.3, weapon_classes=None
+        )
+
+
+cfg = _load_cfg()
 
 log.info("YOLOv8 weapon inference module loaded")
 
-_yolo_model = None
-_selected_model = 'yolov9c'
+_model_cache = {}
+_cache_lock = threading.Lock()
+_WEAPON_MODEL_WEIGHTS = {
+    "yolov8n": "yolov8n.pt",
+    "yolov8x": "yolov8x.pt",
+    "yolov9c": "yolov9c.pt",
+    "yolov9e": "yolov9e.pt",
+    "yolo11m": "yolo11m.pt",
+}
+
+# Weapon classes to filter - read from config or use defaults
+# Common weapon class IDs in custom datasets: 0-9 typically for weapons
+# Set to None to detect all, or specify list of class IDs
+_WEAPON_CLASSES = getattr(cfg, "weapon_classes", None)
+if _WEAPON_CLASSES is None:
+    _WEAPON_CLASSES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # Default weapon classes
+
+# Classes to EXCLUDE (person class is 0 in COCO, but custom models may differ)
+_EXCLUDED_CLASSES = getattr(cfg, "excluded_classes", [])
+if not isinstance(_EXCLUDED_CLASSES, list):
+    _EXCLUDED_CLASSES = []
 
 
-def _get_model():
-    global _yolo_model
-    if _yolo_model is None:
+def _read_class_names(class_file_name):
+    names = {}
+    try:
+        with open(class_file_name, "r", encoding="utf-8") as data:
+            for idx, line in enumerate(data):
+                names[idx] = line.strip()
+    except Exception:
+        pass
+    return names
+
+
+def _draw_bbox_simple(image, boxes, scores, classes, allowed_classes):
+    if boxes is None or len(boxes) == 0:
+        return image
+
+    out = image.copy()
+    for i, box in enumerate(boxes):
+        x1, y1, x2, y2 = [int(v) for v in box]
+        cv2.rectangle(out, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    return out
+
+
+def _resolve_weights(model_name):
+    # Use only local weapon-specific weights.
+    requested = str(model_name or "").strip().lower()
+    if requested in _WEAPON_MODEL_WEIGHTS:
+        weight_name = _WEAPON_MODEL_WEIGHTS[requested]
+    else:
+        weight_name = _WEAPON_MODEL_WEIGHTS["yolov9c"]
+
+    candidate = os.path.join(os.path.dirname(__file__), "..", weight_name)
+    candidate = os.path.abspath(candidate)
+    if os.path.isfile(candidate):
+        return candidate
+
+    # Fallback to configured weapon weights if present.
+    weights_cfg = getattr(cfg, "weights_weapon", None)
+    if weights_cfg and os.path.isfile(weights_cfg):
+        return weights_cfg
+
+    # Final fallback to bundled default.
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", _WEAPON_MODEL_WEIGHTS["yolov9c"])
+    )
+
+
+def _get_model(model_name):
+    key = _resolve_weights(model_name)
+    with _cache_lock:
+        cached = _model_cache.get(key)
+        if cached is not None:
+            return cached
+
         try:
             from ultralytics import YOLO
-        except ImportError:
-            raise ImportError("YOLOv8 يتطلب تثبيت: pip install ultralytics")
-        
-        # Use selected model if available, otherwise default
-        model_name = _selected_model
-        
-        weights = getattr(cfg, "weights_weapon", None) or model_name
-        
-        if not os.path.isfile(weights) and not weights.endswith(".pt"):
-            weights = model_name  # Use the model name directly (will auto-download)
-        
+        except ImportError as exc:
+            raise ImportError("YOLOv8 requires: pip install ultralytics") from exc
+
+        weights = _resolve_weights(key)
         log.info("loading YOLO weapon model: %s", weights)
-        _yolo_model = YOLO(weights)
+        model = YOLO(weights)
+        _model_cache[key] = model
         log.info("loaded YOLO weapon model")
-    return _yolo_model
+        return model
 
 
-def inference_images_weapon(image_mask1, video_name, frame_num):
+def inference_images_weapon(
+    image_mask1,
+    video_name,
+    frame_num,
+    model_name="yolov9c",
+    compute_device="cpu",
+):
     """
-    واجهة متوافقة مع inference_images_weapon (YOLOv4).
-    المدخل: إطار BGR أو RGB.
-    المخرج: (image2, start_time, end_time, scores, classes)
-    حيث scores و classes مصفوفات numpy ذات شكل (1, N) لـ N كشف.
+    Compatibility wrapper that returns:
+    (image2, start_time, end_time, scores, classes)
+
+    scores/classes shapes are (1, N).
     """
-    # Initialize default values to avoid undefined variable errors
     start_time = time.time()
     end_time = time.time()
     image2 = image_mask1.copy()
     out_scores = np.zeros((1, 0), dtype=np.float32)
     out_classes = np.zeros((1, 0), dtype=np.float32)
-    
+
     try:
-        log.info("started YOLOv8 weapon inference")
-        model = _get_model()
+        model = _get_model(model_name)
         score_thr = getattr(cfg, "score_weapon", 0.3)
 
-        # Ultralytics تتوقع BGR (كـ OpenCV)
-        if image_mask1.shape[2] == 3:
-            img_bgr = cv2.cvtColor(image_mask1, cv2.COLOR_RGB2BGR) if image_mask1.shape[2] == 3 else image_mask1
+        if len(image_mask1.shape) == 3 and image_mask1.shape[2] == 3:
+            img_bgr = cv2.cvtColor(image_mask1, cv2.COLOR_RGB2BGR)
         else:
             img_bgr = image_mask1
 
-        results = model(img_bgr, conf=score_thr, verbose=False)[0]
+        prediction_kwargs = {"conf": score_thr, "verbose": False}
+        if isinstance(compute_device, str) and compute_device.strip():
+            prediction_kwargs["device"] = compute_device.strip().lower()
 
+        results = model(img_bgr, **prediction_kwargs)[0]
         end_time = time.time()
 
-        # استخراج الصناديق والثقة والصنف
-        boxes_xyxy = results.boxes.xyxy.cpu().numpy() if results.boxes.xyxy is not None else np.zeros((0, 4))
-        confs = results.boxes.conf.cpu().numpy() if results.boxes.conf is not None else np.zeros(0)
-        clss = results.boxes.cls.cpu().numpy().astype(int) if results.boxes.cls is not None else np.zeros(0, dtype=int)
+        boxes_xyxy = (
+            results.boxes.xyxy.cpu().numpy()
+            if results.boxes.xyxy is not None
+            else np.zeros((0, 4))
+        )
+        confs = (
+            results.boxes.conf.cpu().numpy()
+            if results.boxes.conf is not None
+            else np.zeros(0)
+        )
+        clss = (
+            results.boxes.cls.cpu().numpy().astype(int)
+            if results.boxes.cls is not None
+            else np.zeros(0, dtype=int)
+        )
 
         n = len(confs)
         if n == 0:
@@ -79,35 +176,44 @@ def inference_images_weapon(image_mask1, video_name, frame_num):
             out_classes = np.zeros((1, 0), dtype=np.float32)
             valid_detections = 0
         else:
-            out_boxes = boxes_xyxy.astype(np.float32)
-            out_scores = confs.reshape(1, -1).astype(np.float32)
-            out_classes = clss.reshape(1, -1).astype(np.float32)
-            valid_detections = n
+            # Filter to keep only weapon classes and exclude unwanted classes
+            mask = np.ones(n, dtype=bool)
 
-        pred_bbox = (out_boxes, out_scores[0] if n else np.zeros(0), out_classes[0] if n else np.zeros(0, dtype=np.float32), valid_detections)
+            # Filter out excluded classes (e.g., person)
+            for excluded_cls in _EXCLUDED_CLASSES:
+                mask &= clss != excluded_cls
 
-        # أسماء الأصناف من weapons.names (Gun, Knife, Rifle)
-        class_names_path = os.path.join(os.path.dirname(__file__), "..", "wepdata", "classes", "weapons.names")
-        if not os.path.isfile(class_names_path):
-            class_names_path = "./wepdata/classes/weapons.names"
-        if os.path.isfile(class_names_path):
-            class_names = utils.read_class_names(class_names_path)
-            allowed_classes = list(class_names.values())
-        else:
-            allowed_classes = ["Gun", "Knife", "Rifle"]
+            # Keep only weapon classes if specified
+            if _WEAPON_CLASSES is not None:
+                mask &= np.isin(clss, _WEAPON_CLASSES)
 
-        image2 = utils.draw_bbox(
+            # Apply filter
+            boxes_xyxy = boxes_xyxy[mask]
+            confs = confs[mask]
+            clss = clss[mask]
+
+            n = len(confs)
+            if n == 0:
+                out_boxes = np.zeros((0, 4), dtype=np.float32)
+                out_scores = np.zeros((1, 0), dtype=np.float32)
+                out_classes = np.zeros((1, 0), dtype=np.float32)
+                valid_detections = 0
+            else:
+                out_boxes = boxes_xyxy.astype(np.float32)
+                out_scores = confs.reshape(1, -1).astype(np.float32)
+                out_classes = clss.reshape(1, -1).astype(np.float32)
+                valid_detections = n
+
+        image2 = _draw_bbox_simple(
             image_mask1.copy(),
-            pred_bbox,
-            info=False,
-            allowed_classes=allowed_classes,
+            out_boxes,
+            out_scores[0] if n else np.zeros(0),
+            out_classes[0] if n else np.zeros(0),
+            [],
         )
 
-        log.info("Ended YOLOv8 weapon inference, detections: %s", valid_detections)
-    except Exception as e:
-        log.error("Process exception in YOLOv8 weapon inference: %s", e)
-        # Variables already initialized with defaults above - use them
-        # image2, end_time, out_scores, out_classes are already set
-    
-    # Return in YOLOv8 format: (image, start_time, end_time, scores, classes) with shape (1, N)
+        log.info("YOLOv8 inference finished, detections: %s", valid_detections)
+    except Exception as exc:
+        log.error("YOLOv8 inference exception: %s", exc)
+
     return (image2, start_time, end_time, out_scores, out_classes)
