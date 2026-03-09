@@ -82,7 +82,7 @@ def process_video_frames(
     if wepapp_path not in sys.path:
         sys.path.append(wepapp_path)
 
-    from wepcore.inference_images_weapon_yolov8 import inference_images_weapon
+    from wepcore.inference_images_weapon import inference_images_weapon
 
     cap = None
     detected_weapons = []
@@ -128,8 +128,9 @@ def process_video_frames(
                         compute_device=compute_device,
                     )
 
-                    if scores.shape[1] > 0:
-                        confidence = float(scores[0][0])
+                    if getattr(scores, "size", 0) > 0:
+                        # Use the highest confidence in the frame instead of assuming index 0.
+                        confidence = float(scores.max())
                         if confidence > confidence_threshold:
                             # Check if enough time has passed since last capture
                             time_since_last_capture = current_time - last_capture_time

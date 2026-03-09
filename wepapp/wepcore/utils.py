@@ -1,49 +1,54 @@
-#for opencv-python 4.5.3.56 use this util.py
+# for opencv-python 4.5.3.56 use this util.py
 
 import cv2
 import random
 import colorsys
 import numpy as np
-import tensorflow as tf
 from wepcore.config import cfg
 import re
 
+try:
+    import tensorflow as tf
+except Exception:
+    tf = None
 
-def load_freeze_layer(model='yolov4', tiny=False):
+
+def load_freeze_layer(model="yolov8", tiny=False):
     if tiny:
-        if model == 'yolov3':
-            freeze_layouts = ['conv2d_9', 'conv2d_12']
+        if model == "yolov3":
+            freeze_layouts = ["conv2d_9", "conv2d_12"]
         else:
-            freeze_layouts = ['conv2d_17', 'conv2d_20']
+            freeze_layouts = ["conv2d_17", "conv2d_20"]
     else:
-        if model == 'yolov3':
-            freeze_layouts = ['conv2d_58', 'conv2d_66', 'conv2d_74']
+        if model == "yolov3":
+            freeze_layouts = ["conv2d_58", "conv2d_66", "conv2d_74"]
         else:
-            freeze_layouts = ['conv2d_93', 'conv2d_101', 'conv2d_109']
+            freeze_layouts = ["conv2d_93", "conv2d_101", "conv2d_109"]
     return freeze_layouts
 
-def load_weights(model, weights_file, model_name='yolov4', is_tiny=False):
+
+def load_weights(model, weights_file, model_name="yolov8", is_tiny=False):
     if is_tiny:
-        if model_name == 'yolov3':
+        if model_name == "yolov3":
             layer_size = 13
             output_pos = [9, 12]
         else:
             layer_size = 21
             output_pos = [17, 20]
     else:
-        if model_name == 'yolov3':
+        if model_name == "yolov3":
             layer_size = 75
             output_pos = [58, 66, 74]
         else:
             layer_size = 110
             output_pos = [93, 101, 109]
-    wf = open(weights_file, 'rb')
+    wf = open(weights_file, "rb")
     major, minor, revision, seen, _ = np.fromfile(wf, dtype=np.int32, count=5)
 
     j = 0
     for i in range(layer_size):
-        conv_layer_name = 'conv2d_%d' %i if i > 0 else 'conv2d'
-        bn_layer_name = 'batch_normalization_%d' %j if j > 0 else 'batch_normalization'
+        conv_layer_name = "conv2d_%d" % i if i > 0 else "conv2d"
+        bn_layer_name = "batch_normalization_%d" % j if j > 0 else "batch_normalization"
 
         conv_layer = model.get_layer(conv_layer_name)
         filters = conv_layer.filters
@@ -78,26 +83,28 @@ def load_weights(model, weights_file, model_name='yolov4', is_tiny=False):
 
 def read_class_names(class_file_name):
     names = {}
-    with open(class_file_name, 'r') as data:
+    with open(class_file_name, "r") as data:
         for ID, name in enumerate(data):
-            names[ID] = name.strip('\n')
+            names[ID] = name.strip("\n")
     return names
+
 
 def load_config(FLAGS):
     if FLAGS.tiny:
         STRIDES = np.array(cfg.YOLO.STRIDES_TINY)
         ANCHORS = get_anchors(cfg.YOLO.ANCHORS_TINY, FLAGS.tiny)
-        XYSCALE = cfg.YOLO.XYSCALE_TINY if FLAGS.model == 'yolov4' else [1, 1]
+        XYSCALE = cfg.YOLO.XYSCALE_TINY
     else:
         STRIDES = np.array(cfg.YOLO.STRIDES)
-        if FLAGS.model == 'yolov4':
-            ANCHORS = get_anchors(cfg.YOLO.ANCHORS, FLAGS.tiny)
-        elif FLAGS.model == 'yolov3':
+        if FLAGS.model == "yolov3":
             ANCHORS = get_anchors(cfg.YOLO.ANCHORS_V3, FLAGS.tiny)
-        XYSCALE = cfg.YOLO.XYSCALE if FLAGS.model == 'yolov4' else [1, 1, 1]
+        else:
+            ANCHORS = get_anchors(cfg.YOLO.ANCHORS, FLAGS.tiny)
+        XYSCALE = cfg.YOLO.XYSCALE
     NUM_CLASS = len(read_class_names(cfg.YOLO.CLASSES))
 
     return STRIDES, ANCHORS, NUM_CLASS, XYSCALE
+
 
 def get_anchors(anchors_path, tiny=False):
     anchors = np.array(anchors_path)
@@ -106,18 +113,19 @@ def get_anchors(anchors_path, tiny=False):
     else:
         return anchors.reshape(3, 3, 2)
 
-def image_preprocess(image, target_size, gt_boxes=None):
-    ih, iw    = target_size
-    h,  w, _  = image.shape
 
-    scale = min(iw/w, ih/h)
-    nw, nh  = int(scale * w), int(scale * h)
+def image_preprocess(image, target_size, gt_boxes=None):
+    ih, iw = target_size
+    h, w, _ = image.shape
+
+    scale = min(iw / w, ih / h)
+    nw, nh = int(scale * w), int(scale * h)
     image_resized = cv2.resize(image, (nw, nh))
 
     image_paded = np.full(shape=[ih, iw, 3], fill_value=128.0)
-    dw, dh = (iw - nw) // 2, (ih-nh) // 2
-    image_paded[dh:nh+dh, dw:nw+dw, :] = image_resized
-    image_paded = image_paded / 255.
+    dw, dh = (iw - nw) // 2, (ih - nh) // 2
+    image_paded[dh : nh + dh, dw : nw + dw, :] = image_resized
+    image_paded = image_paded / 255.0
 
     if gt_boxes is None:
         return image_paded
@@ -126,6 +134,7 @@ def image_preprocess(image, target_size, gt_boxes=None):
         gt_boxes[:, [0, 2]] = gt_boxes[:, [0, 2]] * scale + dw
         gt_boxes[:, [1, 3]] = gt_boxes[:, [1, 3]] * scale + dh
         return image_paded, gt_boxes
+
 
 # helper function to convert bounding boxes from normalized ymin, xmin, ymax, xmax ---> xmin, ymin, xmax, ymax
 def format_boxes(bboxes, image_height, image_width):
@@ -137,14 +146,25 @@ def format_boxes(bboxes, image_height, image_width):
         box[0], box[1], box[2], box[3] = xmin, ymin, xmax, ymax
     return bboxes
 
-def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label=True, allowed_classes=list(read_class_names(cfg.YOLO.CLASSES).values()), read_plate = False):
+
+def draw_bbox(
+    image,
+    bboxes,
+    info=False,
+    counted_classes=None,
+    show_label=True,
+    allowed_classes=list(read_class_names(cfg.YOLO.CLASSES).values()),
+    read_plate=False,
+):
     # classes = read_class_names(cfg.YOLO.CLASSES)
     classes = allowed_classes
     num_classes = len(classes)
     image_h, image_w, _ = image.shape
-    hsv_tuples = [(1.0 * x / num_classes, 1., 1.) for x in range(num_classes)]
+    hsv_tuples = [(1.0 * x / num_classes, 1.0, 1.0) for x in range(num_classes)]
     colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
-    colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors))
+    colors = list(
+        map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors)
+    )
 
     random.seed(0)
     random.shuffle(colors)
@@ -152,7 +172,8 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label=Tr
 
     out_boxes, out_scores, out_classes, num_boxes = bboxes
     for i in range(num_boxes):
-        if int(out_classes[i]) < 0 or int(out_classes[i]) > num_classes: continue
+        if int(out_classes[i]) < 0 or int(out_classes[i]) > num_classes:
+            continue
         coor = out_boxes[i]
         fontScale = 0.5
         score = out_scores[i]
@@ -165,35 +186,69 @@ def draw_bbox(image, bboxes, info = False, counted_classes = None, show_label=Tr
                 height_ratio = int(image_h / 25)
                 plate_number = recognize_plate(image, coor)
                 if plate_number != None:
-                    cv2.putText(image, plate_number, (int(coor[0]), int(coor[1]-height_ratio)), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255,255,0), 2)
+                    cv2.putText(
+                        image,
+                        plate_number,
+                        (int(coor[0]), int(coor[1] - height_ratio)),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1.25,
+                        (255, 255, 0),
+                        2,
+                    )
 
             bbox_color = colors[class_ind]
             bbox_thick = int(0.6 * (image_h + image_w) / 600)
-            c1, c2 =  (int(coor[0]), int(coor[1])), (int(coor[2]), int(coor[3]))
+            c1, c2 = (int(coor[0]), int(coor[1])), (int(coor[2]), int(coor[3]))
             cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
 
             if info:
-                print("Object found: {}, Confidence: {:.2f}, BBox Coords (xmin, ymin, xmax, ymax): {}, {}, {}, {} ".format(class_name, score, coor[0], coor[1], coor[2], coor[3]))
+                print(
+                    "Object found: {}, Confidence: {:.2f}, BBox Coords (xmin, ymin, xmax, ymax): {}, {}, {}, {} ".format(
+                        class_name, score, coor[0], coor[1], coor[2], coor[3]
+                    )
+                )
 
             if show_label:
-                bbox_mess = '%s: %.2f' % (class_name, score)
-                t_size = cv2.getTextSize(bbox_mess, 0, fontScale, thickness=bbox_thick // 2)[0]
+                bbox_mess = "%s: %.2f" % (class_name, score)
+                t_size = cv2.getTextSize(
+                    bbox_mess, 0, fontScale, thickness=bbox_thick // 2
+                )[0]
                 c3 = (c1[0] + t_size[0], c1[1] - t_size[1] - 3)
-                cv2.rectangle(image, c1, (int(c3[0]), int(c3[1])), bbox_color, -1) #filled
+                cv2.rectangle(
+                    image, c1, (int(c3[0]), int(c3[1])), bbox_color, -1
+                )  # filled
 
-                cv2.putText(image, bbox_mess, (c1[0], int(np.float32(c1[1] - 2))), cv2.FONT_HERSHEY_SIMPLEX,fontScale, (0, 0, 0), bbox_thick // 2, lineType=cv2.LINE_AA)
+                cv2.putText(
+                    image,
+                    bbox_mess,
+                    (c1[0], int(np.float32(c1[1] - 2))),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale,
+                    (0, 0, 0),
+                    bbox_thick // 2,
+                    lineType=cv2.LINE_AA,
+                )
 
             if counted_classes != None:
                 height_ratio = int(image_h / 25)
                 offset = 15
                 for key, value in counted_classes.items():
-                    cv2.putText(image, "{}s detected: {}".format(key, value), (5, offset),
-                            cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 2)
+                    cv2.putText(
+                        image,
+                        "{}s detected: {}".format(key, value),
+                        (5, offset),
+                        cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                        1,
+                        (0, 255, 0),
+                        2,
+                    )
                     offset += height_ratio
     return image
 
+
 def bbox_iou(bboxes1, bboxes2):
+    if tf is None:
+        raise RuntimeError("TensorFlow is required for legacy bbox_iou")
     """
     @param bboxes1: (a, b, ..., 4)
     @param bboxes2: (A, B, ..., 4)
@@ -234,6 +289,8 @@ def bbox_iou(bboxes1, bboxes2):
 
 
 def bbox_giou(bboxes1, bboxes2):
+    if tf is None:
+        raise RuntimeError("TensorFlow is required for legacy bbox_giou")
     """
     Generalized IoU
     @param bboxes1: (a, b, ..., 4)
@@ -272,9 +329,7 @@ def bbox_giou(bboxes1, bboxes2):
     iou = tf.math.divide_no_nan(inter_area, union_area)
 
     enclose_left_up = tf.minimum(bboxes1_coor[..., :2], bboxes2_coor[..., :2])
-    enclose_right_down = tf.maximum(
-        bboxes1_coor[..., 2:], bboxes2_coor[..., 2:]
-    )
+    enclose_right_down = tf.maximum(bboxes1_coor[..., 2:], bboxes2_coor[..., 2:])
 
     enclose_section = enclose_right_down - enclose_left_up
     enclose_area = enclose_section[..., 0] * enclose_section[..., 1]
@@ -285,6 +340,8 @@ def bbox_giou(bboxes1, bboxes2):
 
 
 def bbox_ciou(bboxes1, bboxes2):
+    if tf is None:
+        raise RuntimeError("TensorFlow is required for legacy bbox_ciou")
     """
     Complete IoU
     @param bboxes1: (a, b, ..., 4)
@@ -323,9 +380,7 @@ def bbox_ciou(bboxes1, bboxes2):
     iou = tf.math.divide_no_nan(inter_area, union_area)
 
     enclose_left_up = tf.minimum(bboxes1_coor[..., :2], bboxes2_coor[..., :2])
-    enclose_right_down = tf.maximum(
-        bboxes1_coor[..., 2:], bboxes2_coor[..., 2:]
-    )
+    enclose_right_down = tf.maximum(bboxes1_coor[..., 2:], bboxes2_coor[..., 2:])
 
     enclose_section = enclose_right_down - enclose_left_up
 
@@ -339,12 +394,8 @@ def bbox_ciou(bboxes1, bboxes2):
 
     v = (
         (
-            tf.math.atan(
-                tf.math.divide_no_nan(bboxes1[..., 2], bboxes1[..., 3])
-            )
-            - tf.math.atan(
-                tf.math.divide_no_nan(bboxes2[..., 2], bboxes2[..., 3])
-            )
+            tf.math.atan(tf.math.divide_no_nan(bboxes1[..., 2], bboxes1[..., 3]))
+            - tf.math.atan(tf.math.divide_no_nan(bboxes2[..., 2], bboxes2[..., 3]))
         )
         * 2
         / np.pi
@@ -356,7 +407,8 @@ def bbox_ciou(bboxes1, bboxes2):
 
     return ciou
 
-def nms(bboxes, iou_threshold, sigma=0.3, method='nms'):
+
+def nms(bboxes, iou_threshold, sigma=0.3, method="nms"):
     """
     :param bboxes: (xmin, ymin, xmax, ymax, score, class)
 
@@ -367,41 +419,48 @@ def nms(bboxes, iou_threshold, sigma=0.3, method='nms'):
     best_bboxes = []
 
     for cls in classes_in_img:
-        cls_mask = (bboxes[:, 5] == cls)
+        cls_mask = bboxes[:, 5] == cls
         cls_bboxes = bboxes[cls_mask]
 
         while len(cls_bboxes) > 0:
             max_ind = np.argmax(cls_bboxes[:, 4])
             best_bbox = cls_bboxes[max_ind]
             best_bboxes.append(best_bbox)
-            cls_bboxes = np.concatenate([cls_bboxes[: max_ind], cls_bboxes[max_ind + 1:]])
+            cls_bboxes = np.concatenate(
+                [cls_bboxes[:max_ind], cls_bboxes[max_ind + 1 :]]
+            )
             iou = bbox_iou(best_bbox[np.newaxis, :4], cls_bboxes[:, :4])
             weight = np.ones((len(iou),), dtype=np.float32)
 
-            assert method in ['nms', 'soft-nms']
+            assert method in ["nms", "soft-nms"]
 
-            if method == 'nms':
+            if method == "nms":
                 iou_mask = iou > iou_threshold
                 weight[iou_mask] = 0.0
 
-            if method == 'soft-nms':
-                weight = np.exp(-(1.0 * iou ** 2 / sigma))
+            if method == "soft-nms":
+                weight = np.exp(-(1.0 * iou**2 / sigma))
 
             cls_bboxes[:, 4] = cls_bboxes[:, 4] * weight
-            score_mask = cls_bboxes[:, 4] > 0.
+            score_mask = cls_bboxes[:, 4] > 0.0
             cls_bboxes = cls_bboxes[score_mask]
 
     return best_bboxes
 
+
 def freeze_all(model, frozen=True):
+    if tf is None:
+        raise RuntimeError("TensorFlow is required for legacy freeze_all")
     model.trainable = not frozen
     if isinstance(model, tf.keras.Model):
         for l in model.layers:
             freeze_all(l, frozen)
+
+
 def unfreeze_all(model, frozen=False):
+    if tf is None:
+        raise RuntimeError("TensorFlow is required for legacy unfreeze_all")
     model.trainable = not frozen
     if isinstance(model, tf.keras.Model):
         for l in model.layers:
             unfreeze_all(l, frozen)
-
-

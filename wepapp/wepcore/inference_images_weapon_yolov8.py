@@ -33,23 +33,7 @@ _model_cache = {}
 _cache_lock = threading.Lock()
 _WEAPON_MODEL_WEIGHTS = {
     "yolov8n": "yolov8n.pt",
-    "yolov8x": "yolov8x.pt",
-    "yolov9c": "yolov9c.pt",
-    "yolov9e": "yolov9e.pt",
-    "yolo11m": "yolo11m.pt",
 }
-
-# Weapon classes to filter - read from config or use defaults
-# Common weapon class IDs in custom datasets: 0-9 typically for weapons
-# Set to None to detect all, or specify list of class IDs
-_WEAPON_CLASSES = getattr(cfg, "weapon_classes", None)
-if _WEAPON_CLASSES is None:
-    _WEAPON_CLASSES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # Default weapon classes
-
-# Classes to EXCLUDE (person class is 0 in COCO, but custom models may differ)
-_EXCLUDED_CLASSES = getattr(cfg, "excluded_classes", [])
-if not isinstance(_EXCLUDED_CLASSES, list):
-    _EXCLUDED_CLASSES = []
 
 
 def _read_class_names(class_file_name):
@@ -61,6 +45,37 @@ def _read_class_names(class_file_name):
     except Exception:
         pass
     return names
+
+
+def _load_weapon_names_set():
+    try:
+        names_path = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__), "..", "wepdata", "classes", "weapons.names"
+            )
+        )
+        names_map = _read_class_names(names_path)
+        out = {str(v).strip().lower() for v in names_map.values() if str(v).strip()}
+        # Accept common typo variants
+        if "riffle" in out:
+            out.add("rifle")
+        return out if out else None
+    except Exception:
+        return None
+
+
+# Weapon classes to filter - read from config or use defaults
+_WEAPON_CLASSES = getattr(cfg, "weapon_classes", None)
+if _WEAPON_CLASSES is None:
+    # Default to first 3 class IDs (Gun/Knife/Riffle) to match weapons.names
+    _WEAPON_CLASSES = [0, 1, 2]
+
+_WEAPON_CLASS_NAMES = _load_weapon_names_set()
+
+# Classes to EXCLUDE (person class is 0 in COCO, but custom models may differ)
+_EXCLUDED_CLASSES = getattr(cfg, "excluded_classes", [])
+if not isinstance(_EXCLUDED_CLASSES, list):
+    _EXCLUDED_CLASSES = []
 
 
 def _draw_bbox_simple(image, boxes, scores, classes, allowed_classes):
@@ -75,26 +90,65 @@ def _draw_bbox_simple(image, boxes, scores, classes, allowed_classes):
 
 
 def _resolve_weights(model_name):
-    # Use only local weapon-specific weights.
+    # Use weapon-specific weights if available
     requested = str(model_name or "").strip().lower()
+
+    # Check if it's a custom weapon model path
     if requested in _WEAPON_MODEL_WEIGHTS:
         weight_name = _WEAPON_MODEL_WEIGHTS[requested]
     else:
-        weight_name = _WEAPON_MODEL_WEIGHTS["yolov9c"]
+        weight_name = _WEAPON_MODEL_WEIGHTS["yolov8n"]
 
+    # First check in wepapp directory for custom weights
+    candidate_paths = [
+        os.path.join(
+            os.path.dirname(__file__), "..", "weaponresource", "checkpoints_weapon"
+        ),
+        os.path.join(os.path.dirname(__file__), "..", weight_name),
+    ]
+
+    # Look for best available weapon detection model
+    for base_path in candidate_paths:
+        if os.path.isdir(base_path):
+            # Check for WeaponOct models (prefer higher version)
+            weapon_oct24 = os.path.join(base_path, "WeaponOct24_608_8K")
+            weapon_oct7 = os.path.join(base_path, "WeaponOct7_608_6000")
+
+            if os.path.isdir(weapon_oct24):
+                # Use TensorFlow model path - will be handled separately
+                log.info("Found TensorFlow weapon model: WeaponOct24_608_8K")
+            if os.path.isdir(weapon_oct7):
+                log.info("Found TensorFlow weapon model: WeaponOct7_608_6000")
+
+    # Check for YOLO format weapon models in the weaponresource directory
+    yolo_weights_dir = os.path.join(os.path.dirname(__file__), "..", "weaponresource")
+    if os.path.isdir(yolo_weights_dir):
+        for f in os.listdir(yolo_weights_dir):
+            if f.endswith((".pt", ".onnx")):
+                candidate = os.path.join(yolo_weights_dir, f)
+                if os.path.isfile(candidate):
+                    log.info("Found YOLO weapon model: %s", f)
+                    return candidate
+
+    # Check standard location
     candidate = os.path.join(os.path.dirname(__file__), "..", weight_name)
     candidate = os.path.abspath(candidate)
     if os.path.isfile(candidate):
         return candidate
 
-    # Fallback to configured weapon weights if present.
+    # Fallback to configured weapon weights if present
     weights_cfg = getattr(cfg, "weights_weapon", None)
     if weights_cfg and os.path.isfile(weights_cfg):
         return weights_cfg
 
-    # Final fallback to bundled default.
+    # Final fallback - use yolov8n which will be downloaded from ultralytics
+    # Note: This is NOT a weapon-specific model!
+    log.warning("No custom weapon model found, using default YOLOv8 model")
+    log.warning(
+        "This model is NOT trained for weapon detection - detection will be limited!"
+    )
     return os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", _WEAPON_MODEL_WEIGHTS["yolov9c"])
+        os.path.join(os.path.dirname(__file__), "..", _WEAPON_MODEL_WEIGHTS["yolov8n"])
     )
 
 
@@ -122,7 +176,7 @@ def inference_images_weapon(
     image_mask1,
     video_name,
     frame_num,
-    model_name="yolov9c",
+    model_name="yolov8n",
     compute_device="cpu",
 ):
     """
@@ -148,10 +202,19 @@ def inference_images_weapon(
 
         prediction_kwargs = {"conf": score_thr, "verbose": False}
         if isinstance(compute_device, str) and compute_device.strip():
-            prediction_kwargs["device"] = compute_device.strip().lower()
+            dev = compute_device.strip().lower()
+            if dev == "gpu":
+                dev = "cuda"
+            prediction_kwargs["device"] = dev
 
         results = model(img_bgr, **prediction_kwargs)[0]
         end_time = time.time()
+
+        names_map = getattr(results, "names", None)
+        if not isinstance(names_map, dict):
+            names_map = getattr(model, "names", None)
+        if not isinstance(names_map, dict):
+            names_map = {}
 
         boxes_xyxy = (
             results.boxes.xyxy.cpu().numpy()
@@ -184,7 +247,13 @@ def inference_images_weapon(
                 mask &= clss != excluded_cls
 
             # Keep only weapon classes if specified
-            if _WEAPON_CLASSES is not None:
+            if _WEAPON_CLASS_NAMES:
+                det_names = np.array(
+                    [str(names_map.get(int(c), "")).strip().lower() for c in clss],
+                    dtype=object,
+                )
+                mask &= np.isin(det_names, list(_WEAPON_CLASS_NAMES))
+            elif _WEAPON_CLASSES is not None:
                 mask &= np.isin(clss, _WEAPON_CLASSES)
 
             # Apply filter

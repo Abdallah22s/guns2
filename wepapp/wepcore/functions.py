@@ -2,15 +2,29 @@ import os
 import cv2
 import random
 import numpy as np
-import tensorflow as tf
-from wepcore.utils import read_class_names
 from wepcore.config import cfg
 
+
+def read_class_names(class_file_name):
+    names = {}
+    try:
+        with open(class_file_name, "r", encoding="utf-8") as data:
+            for ID, name in enumerate(data):
+                names[ID] = name.strip("\n")
+    except Exception:
+        return {}
+    return names
+
+
 # function to count objects, can return total classes or count per class
-def count_objects(data, by_class = False, allowed_classes = list(read_class_names(cfg.YOLO.CLASSES).values())):
+def count_objects(
+    data,
+    by_class=False,
+    allowed_classes=list(read_class_names(cfg.YOLO.CLASSES).values()),
+):
     boxes, scores, classes, num_objects = data
 
-    #create dictionary to hold count of objects
+    # create dictionary to hold count of objects
     counts = dict()
 
     # if by_class = True then count objects per class
@@ -29,15 +43,16 @@ def count_objects(data, by_class = False, allowed_classes = list(read_class_name
 
     # else count total objects found
     else:
-        counts['total object'] = num_objects
-    
+        counts["total object"] = num_objects
+
     return counts
+
 
 # function for cropping each detection and saving as new image
 def crop_objects(img, data, path, allowed_classes):
     boxes, scores, classes, num_objects = data
     class_names = read_class_names(cfg.YOLO.CLASSES)
-    #create dictionary to hold count of objects for image name
+    # create dictionary to hold count of objects for image name
     counts = dict()
     for i in range(num_objects):
         # get count of class for part of image name
@@ -48,13 +63,13 @@ def crop_objects(img, data, path, allowed_classes):
             # get box coords
             xmin, ymin, xmax, ymax = boxes[i]
             # crop detection from image (take an additional 5 pixels around all edges)
-            cropped_img = img[int(ymin)-5:int(ymax)+5, int(xmin)-5:int(xmax)+5]
+            cropped_img = img[
+                int(ymin) - 5 : int(ymax) + 5, int(xmin) - 5 : int(xmax) + 5
+            ]
             # construct image name and join it to path for saving crop properly
-            img_name = class_name + '_' + str(counts[class_name]) + '.png'
-            img_path = os.path.join(path, img_name )
+            img_name = class_name + "_" + str(counts[class_name]) + ".png"
+            img_path = os.path.join(path, img_name)
             # save image
             cv2.imwrite(img_path, cropped_img)
         else:
             continue
-        
-

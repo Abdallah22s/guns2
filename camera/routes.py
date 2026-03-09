@@ -412,7 +412,7 @@ def process_video(camera_id):
         compute_device = _normalize_compute_device(
             request.form.get("compute_device", "gpu")
         )
-        model_name = (request.form.get("model", "yolov9c") or "yolov9c").strip()
+        model_name = (request.form.get("model", "yolov8n") or "yolov8n").strip()
 
         try:
             scan_interval = int(request.form.get("scan_interval", 5))
@@ -571,7 +571,7 @@ def start_scan_video():
 
         video_link = data.get("video_link")
         compute_device = _normalize_compute_device(data.get("compute_device", "gpu"))
-        model_name = (data.get("model", "yolov9c") or "yolov9c").strip()
+        model_name = (data.get("model", "yolov8n") or "yolov8n").strip()
 
         try:
             snapshot_interval_seconds = int(data.get("snapshot_interval_seconds", 5))
@@ -585,6 +585,30 @@ def start_scan_video():
                 ),
                 400,
             )
+
+        # Optional confidence threshold from client payload.
+        # Accept both names for backward compatibility.
+        try:
+            confidence_threshold = float(
+                data.get("confidence_threshold", data.get("score_weapon", 0.1))
+            )
+            if confidence_threshold <= 0 or confidence_threshold > 1:
+                raise ValueError("confidence_threshold must be in (0, 1]")
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Invalid confidence threshold: {e}")
+            return jsonify({"success": False, "error": "Invalid confidence threshold"}), 400
+
+        # Optional direct frame skip override (process every Nth frame)
+        frame_skip_override = None
+        raw_frame_skip = data.get("frame_skip_size")
+        if raw_frame_skip is not None:
+            try:
+                frame_skip_override = int(raw_frame_skip)
+                if frame_skip_override <= 0:
+                    raise ValueError("frame_skip_size must be > 0")
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Invalid frame_skip_size: {e}")
+                return jsonify({"success": False, "error": "Invalid frame_skip_size"}), 400
 
         capture_name = secure_filename(data.get("capture_name", "scan")) or "scan"
 
@@ -613,6 +637,9 @@ def start_scan_video():
             "weapon_images_count": 0,
             "model": model_name,
             "compute_device": compute_device,
+            "confidence_threshold": confidence_threshold,
+            "snapshot_interval_seconds": snapshot_interval_seconds,
+            "frame_skip_size": frame_skip_override,
             "created_at": time.time(),
             "updated_at": time.time(),
         }
@@ -631,7 +658,13 @@ def start_scan_video():
                 cap = cv2.VideoCapture(str(video_path))
                 fps = cap.get(cv2.CAP_PROP_FPS)
                 cap.release()
-                frame_skip = max(int(fps * snapshot_interval_seconds), 1)
+                # Keep detection cadence reasonable even on high FPS videos.
+                auto_frame_skip = max(int(fps * snapshot_interval_seconds), 1)
+                frame_skip = (
+                    frame_skip_override
+                    if frame_skip_override is not None
+                    else min(auto_frame_skip, 10)
+                )
 
                 def update_progress(progress):
                     with scan_jobs_lock:
@@ -645,7 +678,7 @@ def start_scan_video():
                     frame_skip=frame_skip,
                     model_name=model_name,
                     compute_device=compute_device,
-                    confidence_threshold=0.15,
+                    confidence_threshold=confidence_threshold,
                     progress_callback=update_progress,
                     job_id=job_id,
                 )
@@ -761,7 +794,7 @@ def start_camera_live_analysis():
         "camera_id": 1,                    // معرف الكاميرا
         "stream_url": "rtsp://...",        // رابط البث (اختياري إذا كان محدد في الكاميرا)
         "compute_device": "cpu",           // cpu/cuda/mps
-        "model_name": "yolov9c",          // نموذج YOLO
+        "model_name": "yolov8n",          // نموذج YOLO
         "frame_skip": 30,                  // تخطي الإطارات
         "confidence_threshold": 0.25,     // حد الثقة
         "scan_duration": 3600             // مدة الفحص بالثواني
@@ -804,7 +837,7 @@ def start_camera_live_analysis():
 
         # Get parameters
         compute_device = _normalize_compute_device(data.get("compute_device", "cpu"))
-        model_name = data.get("model_name", "yolov9c")
+        model_name = data.get("model_name", "yolov8n")
         frame_skip = int(data.get("frame_skip", 30))
         confidence_threshold = float(data.get("confidence_threshold", 0.25))
         scan_duration = int(data.get("scan_duration", 3600))

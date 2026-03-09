@@ -7,17 +7,20 @@ version 1.0
 This python-based toolkit uses trained AI models to report the existence of weapons in video-based content.
 
 The following weapons can be detected
+
 - Hand guns
 - Rifles
 - Knives
 
 The following video technology can be processed
+
 - mp4
 - webm
 - rtsp
 - mjpeg
 
 Weapon detection events can be optionally archived and published via the following technologies
+
 - MQTT pub/sub
 - Raptor API
 - REST services
@@ -25,6 +28,7 @@ Weapon detection events can be optionally archived and published via the followi
 ## Configuration
 
 Wep configuration is defined within 5 stanzs
+
 - Source - mp4 file name, rtsp stream URL, etc.
 - Log config directives
 - Processor directives
@@ -55,11 +59,11 @@ The following represents a sample Wep configuration file
   frame_skip_size = 100
 
 [inference]
-  framework = tf
-  weights_weapon = /user/home/weaponresource/checkpoints_weapon/WeaponOct7_608_6000/
+  framework = yolov8
+  weights_weapon = yolov8n.pt
   input_size_weapon = 608
   tiny = False
-  model = yolov4
+  model = yolov8n
   # output_format = XVID
   # for webm
   output_format = vp80
@@ -117,6 +121,7 @@ $ python wep.py my_wep_config.ini
 ## Execution
 
 The following is a sample run of the code with the following salient settings (see config info above for reference):
+
 - data source type (video_type = mp4)
 - data source path (video_link = /user/home/wep/videos/9mm_fast_walk.mp4)
 - every 100th frame is analyzed (frame_skip_size = 100)
@@ -128,11 +133,11 @@ The following is a sample run of the code with the following salient settings (s
 Note the detection event warning at timestampe `2023-03-07 14:37:41` and subsequent event publishing at `2023-03-07 14:37:43`.
 
 ```js
-$ python wep.py 
+$ python wep.py
 2023-03-07 14:37:23 : INFO : <module> : 30 - Setup complete (v1.0)
 2023-03-07 14:37:23 : INFO : <module> : 48 - Input request: {'video_link': '/user/home/wep/videos/9mm_fast_walk.mp4', 'building': 'Building A', 'video_type': 'mp4', 'friendly_name': 'fast_walker', 'file_original_name': '9mm_fast_walk.mp4'}
 2023-03-07 14:37:23 : INFO : <module> : 59 - Detection for video starts...
-2023-03-07 14:37:23 : INFO : <module> : 61 - GPU Utilization before: 
+2023-03-07 14:37:23 : INFO : <module> : 61 - GPU Utilization before:
 | ID | GPU | MEM |
 ------------------
 2023-03-07 14:37:23.979069: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
@@ -175,6 +180,7 @@ OpenCV: FFMPEG: tag 0x30387076/'vp80' is not supported with codec id 139 and for
 ## Raptor
 
 A tool name `raptor_tool.py` is provided to support the Raptor API as it has its own ecosystem. Note that it uses the same config file the `wep.py` app uses for config info, specifically, the `raptor` stanza. It's manifested in 4 phases:
+
 - fetch auth token
 - fetch building info
 - fetch incident template
@@ -188,7 +194,7 @@ A sample invocation follows:
 
 ```js
 $ python raptor_tool.py
-Input Raptor request: b[uilding] | t[emplate] | g[en token] c[reate incident]: 
+Input Raptor request: b[uilding] | t[emplate] | g[en token] c[reate incident]:
 ```
 
 The following shows a sample invocation which creates of a token:
@@ -248,6 +254,7 @@ Input Raptor request: b[uilding] | t[emplate] | g[en token] c[reate incident]: B
 Similar is done for `incident template` data.
 
 ## Third party software
+
 - Tensorflow library version 2.6.0 or later
 - Paho MQTT library is used for MQTT client (pip install paho-mqtt)
 - Standard logging library is used for logging
@@ -260,4 +267,3 @@ MIT
 ## Authors
 
 Balasundram Arunn, Chatura Samarasinghe, Reed McCauley
-

@@ -5,7 +5,8 @@ from flask_restful import Api
 import multiprocessing as mp
 import subprocess
 from pathlib import Path
-from test.test import test_bp
+
+# from test.test import test_bp
 from camera.routes import camera_bp
 from event.routes import event_bp
 
@@ -19,7 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 INFERENCES_DIR = PROJECT_ROOT / "wepapp" / "inferences"
 
 api = Api(app)
-app.register_blueprint(test_bp, url_prefix="/api/test")
+# app.register_blueprint(test_bp, url_prefix="/api/test")
 app.register_blueprint(camera_bp, url_prefix="/api/camera")
 app.register_blueprint(event_bp, url_prefix="/api/event")
 

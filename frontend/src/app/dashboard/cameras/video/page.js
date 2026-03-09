@@ -23,8 +23,8 @@ export default function AddVideoPage() {
   const [scanEtaSeconds, setScanEtaSeconds] = useState(null);
   const [computeDevice, setComputeDevice] = useState("gpu");
   const [gpuAvailable, setGpuAvailable] = useState(true);
-  const [selectedModel, setSelectedModel] = useState("yolov9c");
-  const [snapshotIntervalSeconds, setSnapshotIntervalSeconds] = useState(5);
+  const [selectedModel, setSelectedModel] = useState("yolov8n");
+  const [snapshotIntervalSeconds, setSnapshotIntervalSeconds] = useState(1);
   const [scanVideoName, setScanVideoName] = useState("");
   const [showResultsModal, setShowResultsModal] = useState(false);
   const scanPollRef = useRef(null);
@@ -119,10 +119,10 @@ export default function AddVideoPage() {
         {
           video_link: uploadedVideoLink,
           frame_skip_size: null,
-          score_weapon: 0.15,
+          confidence_threshold: 0.1,
           compute_device: computeDevice,
           model: selectedModel,
-          snapshot_interval_seconds: Number(snapshotIntervalSeconds) || 5,
+          snapshot_interval_seconds: Number(snapshotIntervalSeconds) || 1,
           min_weapon_images: 3,
           max_weapon_images: 5,
           capture_name: scanVideoName.trim(),
