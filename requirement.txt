@@ -6,7 +6,7 @@ GPUtil
 tensorflow
 paho-mqtt
 pymongo
-opencv-python
+opencv-python<4.10
 easydict
 paho-mqtt
 flask_socketio
@@ -15,6 +15,6 @@ Flask-SQLAlchemy
 torch
 torchvision
 ultralytics
-numpy
+numpy<2
 werkzeug
 requests

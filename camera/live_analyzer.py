@@ -83,7 +83,9 @@ class LiveStreamAnalyzer:
         sys.path.insert(0, str(WEPAPP_DIR))
 
         try:
-            from wepcore.inference_images_weapon_yolov8 import inference_images_weapon
+            # Use unified inference to pick the best available weapon model
+            # (Keras custom model when available, else YOLOv8 fallback).
+            from wepcore.inference_images_weapon import inference_images_weapon
         except ImportError as e:
             logger.error(f"Failed to import inference module: {e}")
             self.is_running = False
@@ -137,11 +139,13 @@ class LiveStreamAnalyzer:
                         frame_count,
                         model_name=self.model_name,
                         compute_device=self.compute_device,
+                        confidence_threshold=self.confidence_threshold,
                     )
 
                     # Check for detections
-                    if scores is not None and len(scores) > 0 and scores.shape[1] > 0:
-                        confidence = float(scores[0][0])
+                    if getattr(scores, "size", 0) > 0:
+                        # Use highest confidence across detections.
+                        confidence = float(scores.max())
 
                         if confidence > self.confidence_threshold:
                             # Save detection image

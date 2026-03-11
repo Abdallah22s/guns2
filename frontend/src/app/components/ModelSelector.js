@@ -7,10 +7,46 @@
 export default function ModelSelector({ value, onChange }) {
   const models = [
     {
+      id: "keras",
+      label: "Keras WeaponOct24",
+      description: "Custom weapon model",
+      recommended: true,
+    },
+    {
+      id: "epoch30",
+      label: "YOLO epoch30",
+      description: "Pistol & Knife (folder 11)",
+      recommended: false,
+    },
+    {
+      id: "hadi_yolov8",
+      label: "YOLO Hadi",
+      description: "Pistol & Knife (HuggingFace)",
+      recommended: false,
+    },
+    {
+      id: "threat_yolov8n",
+      label: "YOLO Threat",
+      description: "Gun, grenade, knife (HuggingFace)",
+      recommended: false,
+    },
+    {
+      id: "firearm_yolov8n",
+      label: "YOLO Firearm",
+      description: "Gun detector (HuggingFace)",
+      recommended: false,
+    },
+    {
+      id: "weapon",
+      label: "YOLO Weapon",
+      description: "Gun, grenade, knife detector",
+      recommended: false,
+    },
+    {
       id: "yolov8n",
       label: "YOLOv8",
-      description: "Recommended",
-      recommended: true,
+      description: "Fallback model",
+      recommended: false,
     },
   ];
 

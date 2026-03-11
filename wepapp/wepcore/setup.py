@@ -6,15 +6,42 @@ import logging as log
 import wepcore.constants as cons
 import sys
 import typing
+import os
+
+
+def _resolve_config_path() -> Path:
+	class _Marker:
+		...
+
+	# 1) Env override
+	env_path = os.environ.get("WEP_CONFIG_PATH")
+	if env_path:
+		candidate = Path(env_path).expanduser()
+		if candidate.is_file():
+			return candidate
+		log.error("WEP_CONFIG_PATH provided but not found: %s", candidate)
+
+	# 2) Module-relative default (wepapp/wep.ini)
+	module_root = Path(__file__).resolve().parent.parent  # wepapp
+	module_ini = module_root / "wep.ini"
+	if module_ini.is_file():
+		return module_ini
+
+	# 3) CLI arg (backward compatibility with original behavior)
+	if len(sys.argv) > 1:
+		cli_candidate = Path(sys.argv[1])
+		if cli_candidate.is_file():
+			return cli_candidate
+
+	# Nothing found; return module path to trigger clear error
+	return module_ini
 
 if __name__ == 'wepcore.setup':
 
 	version_info = 'v1.0'
 	
 	is_valid = False
-	config_file = "wep.ini"
-	if len(sys.argv) > 1:
-		config_file = sys.argv[1];
+	config_file = _resolve_config_path()
 
 	try:
 		if not Path(config_file).is_file():
@@ -34,12 +61,17 @@ if __name__ == 'wepcore.setup':
 
 		if source.get(cons.VIDEO_TYPE) in cons.VIDEO_FILE_TYPES:
 			if not Path(source.get(cons.VIDEO_LINK)).is_file():
-				raise FileNotFoundError(source.get(cons.VIDEO_LINK))
+				log.warning("Configured video file not found: %s", source.get(cons.VIDEO_LINK))
 
 		logc = config[cons.LOG]
-		if not Path(logc.get(cons.LOG_CONFIG_FILE)).is_file():
-			raise FileNotFoundError(logc.get(cons.LOG_CONFIG_FILE))
-		log.config.fileConfig(logc.get(cons.LOG_CONFIG_FILE))
+		log_conf_path = Path(logc.get(cons.LOG_CONFIG_FILE))
+		if not log_conf_path.is_file():
+			alt = Path(config_file).parent / log_conf_path
+			if alt.is_file():
+				log_conf_path = alt
+			else:
+				raise FileNotFoundError(log_conf_path)
+		log.config.fileConfig(log_conf_path)
 
 		config.get(cons.PROCESSOR, cons.KNIFE_THRESHOLD)
 		config.get(cons.PROCESSOR, cons.OUTPUT_PATH)

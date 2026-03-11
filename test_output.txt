@@ -1,0 +1,84 @@
+2026-03-10 09:36:31.021245: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cudart64_110.dll'; dlerror: cudart64_110.dll not found
+2026-03-10 09:36:31.021378: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2026-03-10 09:36:40.964701: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cudart64_110.dll'; dlerror: cudart64_110.dll not found
+2026-03-10 09:36:40.965722: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cublas64_11.dll'; dlerror: cublas64_11.dll not found
+2026-03-10 09:36:40.967019: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cublasLt64_11.dll'; dlerror: cublasLt64_11.dll not found
+2026-03-10 09:36:40.967965: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cufft64_10.dll'; dlerror: cufft64_10.dll not found
+2026-03-10 09:36:40.968900: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'curand64_10.dll'; dlerror: curand64_10.dll not found
+2026-03-10 09:36:40.969867: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cusolver64_11.dll'; dlerror: cusolver64_11.dll not found
+2026-03-10 09:36:40.970700: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cusparse64_11.dll'; dlerror: cusparse64_11.dll not found
+2026-03-10 09:36:40.971492: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cudnn64_8.dll'; dlerror: cudnn64_8.dll not found
+2026-03-10 09:36:40.971517: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2026-03-10 09:36:40.971796: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX AVX2
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+============================================================
+Weapon Detection Model Test
+============================================================
+Video: C:\Users\abdallah\Desktop\train\guns_final\guns2\videos\uploads\1773062898_cctv_weapon_8.mp4
+Model: C:\Users\abdallah\Desktop\train\guns_final\guns2\wepapp\weaponresource\checkpoints_weapon\WeaponOct24_608_8K
+Video exists: True
+Model exists: True
+
+
+[1] Testing Keras Model
+--- Testing Keras Model ---
+TensorFlow version: 2.10.1
+Loading model...
+OK: Model loaded successfully
+OK: serving_default signature found
+   Inputs: ['input_1']
+   Outputs: ['tf_op_layer_concat_18']
+Video: 3559 frames, 25.0 FPS
+OK: Read frame: (450, 360, 3)
+
+  Testing format: float32 [0,1]
+  Input shape: (1, 608, 608, 3), dtype: float32
+  ERROR: zero-size array to reduction operation minimum which has no identity
+
+  Testing format: uint8 [0,255]
+  Input shape: (1, 608, 608, 3), dtype: uint8
+  ERROR: cannot compute __inference_signature_wrapper_5587 as input #0(zero-based) was expected to be a float tensor but is a uint8 tensor [Op:__inference_signature_wrapper_5587]
+
+--- Keras Results Analysis ---
+  float32 [0,1]: FAILED
+  uint8 [0,255]: FAILED
+
+[2] Testing YOLOv8 Model
+
+--- Testing YOLOv8 Model ---
+OK: ultralytics installed
+Loading model from: C:\Users\abdallah\Desktop\train\guns_final\guns2\wepapp\yolov8n.pt
+OK: Model loaded
+   Classes (first 10): ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light']
+   Total classes: 80
+   OK: Weapon classes found: {43: 'knife'}
+
+  Testing on video frame...
+  OK: Detected 12 objects:
+     - traffic light (class 9): conf=0.050
+     - traffic light (class 9): conf=0.040
+     - traffic light (class 9): conf=0.037
+     - person (class 0): conf=0.030
+     - kite (class 33): conf=0.021
+     - person (class 0): conf=0.020
+     - car (class 2): conf=0.017
+     - traffic light (class 9): conf=0.016
+     - person (class 0): conf=0.016
+     - traffic light (class 9): conf=0.014
+     - car (class 2): conf=0.012
+     - train (class 6): conf=0.011
+
+[3] Testing Multiple Frames with Keras
+
+--- Testing Multiple Frames with Keras ---
+Video: 3559 frames, 25.0 FPS
+Testing 20 frames spread across the video...
+  Frame 2832: DETECTED 15 objects! max_score=0.4619
+  Frame 3009: DETECTED 5 objects! max_score=0.6129
+
+Result: 2/21 frames with detections
+
+============================================================
+Test Complete
+============================================================
