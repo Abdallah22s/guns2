@@ -311,7 +311,7 @@ export default function AddVideoPage() {
                 htmlFor="debug_inference"
                 className="text-xs font-semibold text-black-600"
               >
-                {isRTL ? "تشغيل التشخيص" : "Enable debug inference"}
+                {isRTL ? t("enableDebugInference") : t("enableDebugInference")}
               </label>
             </div>
           </div>

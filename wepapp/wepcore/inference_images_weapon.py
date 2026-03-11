@@ -39,17 +39,20 @@ except Exception:
     FRAMEWORK_DEFAULT = "yolov8"
 
 
-def resolve_model_selection(model_name):
-    """Resolve requested model into an effective backend/model selection.
+def resolve_model_selection(model_name: str) -> tuple[str, str, str | None]:
+    """حل النموذج المحدد إلى نموذج خلفي فعال.
+
+    Args:
+        model_name: اسم النموذج المطلوب من المستخدم
 
     Returns:
-        (model_selected, model_used, fallback_reason)
+        tuple: (model_selected, model_used, fallback_reason)
 
-    User selection is now respected:
-    - If user selects 'keras' or 'tf' or 'tensorflow' → use Keras (if available)
-    - If user selects 'yolo' or 'yolov8' or 'yolov8n' → use YOLO
-    - If user selects 'auto' → use Keras if available, else YOLO
-    - If user selects specific YOLO model name (epoch30, hadi_yolov8, etc.) → use that YOLO model
+    ملاحظات:
+        - إذا اختار المستخدم 'keras' أو 'tf' أو 'tensorflow' → يستخدم Keras (إن وجد)
+        - إذا اختار 'yolo' أو 'yolov8' أو 'yolov8n' → يستخدم YOLO
+        - إذا اختار 'auto' → يستخدم Keras إن وجد، وإلا YOLO
+        - إذا اختار اسم محدد (epoch30, hadi_yolov8, etc.) → يستخدم ذلك النموذج
     """
     raw = (model_name or "").strip().lower()
     if not raw:

@@ -228,9 +228,9 @@ def inference_images_weapon(
     out_classes = np.zeros((1, 0), dtype=np.float32)
 
     try:
-        print(f"[YOLO] Loading model: {model_name}", flush=True)
+        log.info("YOLO model loading: %s", model_name)
         model = _get_model(model_name, debug=debug)
-        print(f"[YOLO] Model loaded: {model}", flush=True)
+        log.info("YOLO model loaded: %s", model)
         score_thr = (
             float(confidence_threshold)
             if confidence_threshold is not None

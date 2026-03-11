@@ -600,7 +600,7 @@ def start_scan_video():
         # Accept both names for backward compatibility.
         try:
             confidence_threshold = float(
-                data.get("confidence_threshold", data.get("score_weapon", 0.01))
+                data.get("confidence_threshold", data.get("score_weapon", 0.1))
             )
             if confidence_threshold <= 0 or confidence_threshold > 1:
                 raise ValueError("confidence_threshold must be in (0, 1]")
