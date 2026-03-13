@@ -12,7 +12,7 @@ export default function ScanIntervalSelector({
   isRTL = false 
 }) {
   const t = useTranslations(isRTL)
-  const normalized = Number.isFinite(Number(value)) ? Number(value) : 5
+  const normalized = Number.isFinite(Number(value)) ? Number(value) : 2
   const clamped = Math.min(30, Math.max(1, normalized))
 
   const handleChange = (raw) => {

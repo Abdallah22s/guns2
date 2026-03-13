@@ -9,6 +9,7 @@ import { useTranslations } from '@/app/translations'
 export default function ProgressBar({ 
   progress, 
   status,
+  secondaryStatus,
   isRTL = false,
   showPercentage = true,
   animated = true 
@@ -83,6 +84,12 @@ export default function ProgressBar({
           ${progress >= 100 ? 'text-green-600' : 'text-gray-600'}
         `}>
           {status}
+        </p>
+      )}
+
+      {secondaryStatus && (
+        <p className="text-sm text-gray-600">
+          {secondaryStatus}
         </p>
       )}
     </div>

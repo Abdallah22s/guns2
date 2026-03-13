@@ -22,11 +22,12 @@ export default function ProcessVideoPage({ params }) {
   const [computeDevice, setComputeDevice] = useState("gpu");
   const [gpuAvailable, setGpuAvailable] = useState(true);
   const [selectedModel, setSelectedModel] = useState("yolov8n");
-  const [scanInterval, setScanInterval] = useState(1);
+  const [scanInterval, setScanInterval] = useState(2);
   const [scanVideoName, setScanVideoName] = useState(`camera_${cameraId}_scan`);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
+  const [etaSeconds, setEtaSeconds] = useState(null);
   const [weapons, setWeapons] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
@@ -57,6 +58,18 @@ export default function ProcessVideoPage({ params }) {
     setError(null);
   }, []);
 
+  const formatEta = useCallback(
+    (seconds) => {
+      if (typeof seconds !== "number" || Number.isNaN(seconds) || seconds < 0) {
+        return null;
+      }
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${String(secs).padStart(2, "0")} ${t("seconds")}`;
+    },
+    [t],
+  );
+
   const handleProcess = async () => {
     if (!selectedFile) {
       setError(t("noFileSelected"));
@@ -74,6 +87,7 @@ export default function ProcessVideoPage({ params }) {
     setIsProcessing(true);
     setProgress(0);
     setStatus(t("uploading"));
+    setEtaSeconds(null);
     setError(null);
     setWeapons([]);
     setShowModal(false);
@@ -114,7 +128,7 @@ export default function ProcessVideoPage({ params }) {
           compute_device: computeDevice,
           model: selectedModel,
           snapshot_interval_seconds: scanInterval,
-          confidence_threshold: 0.05,
+          confidence_threshold: 0.01,
           capture_name: scanVideoName.trim(),
         },
       );
@@ -134,6 +148,11 @@ export default function ProcessVideoPage({ params }) {
 
           const processingProgress = jobStatus.progress || 0;
           setProgress(50 + Math.round(processingProgress * 0.5));
+          setEtaSeconds(
+            typeof jobStatus.eta_seconds === "number"
+              ? jobStatus.eta_seconds
+              : null,
+          );
 
           if (jobStatus.status === "running") {
             setStatus(jobStatus.message || t("processingVideoPleaseWait"));
@@ -146,6 +165,7 @@ export default function ProcessVideoPage({ params }) {
             stopPolling();
             setIsProcessing(false);
             setProgress(100);
+            setEtaSeconds(null);
 
             if (jobStatus.status === "failed") {
               setError(t("videoScanFailed"));
@@ -199,6 +219,7 @@ export default function ProcessVideoPage({ params }) {
           console.error("Polling error:", pollError);
           stopPolling();
           setIsProcessing(false);
+          setEtaSeconds(null);
           setError(t("videoScanFailed"));
         }
       }, 1000);
@@ -207,6 +228,7 @@ export default function ProcessVideoPage({ params }) {
       setError(t("videoScanFailed"));
       setStatus("");
       setIsProcessing(false);
+      setEtaSeconds(null);
       stopPolling();
     }
   };
@@ -301,6 +323,11 @@ export default function ProcessVideoPage({ params }) {
                 <ProgressBar
                   progress={progress}
                   status={status}
+                  secondaryStatus={
+                    etaSeconds !== null && progress < 100
+                      ? `${t("remainingTime")}: ${formatEta(etaSeconds)}`
+                      : ""
+                  }
                   isRTL={isRTL}
                 />
               </div>

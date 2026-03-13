@@ -1,0 +1,1032 @@
+{
+  "video_path": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\videos\\uploads\\1773062898_cctv_weapon_8.mp4",
+  "model_selected": "auto",
+  "model_used": "keras",
+  "model_fallback_reason": null,
+  "confidence_threshold": 0.01,
+  "frame_skip": 25,
+  "total_frames": 3559,
+  "processed_frames": 12,
+  "records": [
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 0,
+      "time_seconds": 0.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 25,
+      "time_seconds": 1.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 50,
+      "time_seconds": 2.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 75,
+      "time_seconds": 3.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 100,
+      "time_seconds": 4.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 125,
+      "time_seconds": 5.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 150,
+      "time_seconds": 6.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 175,
+      "time_seconds": 7.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 200,
+      "time_seconds": 8.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 225,
+      "time_seconds": 9.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 250,
+      "time_seconds": 10.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 275,
+      "time_seconds": 11.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 300,
+      "time_seconds": 12.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 325,
+      "time_seconds": 13.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 350,
+      "time_seconds": 14.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 375,
+      "time_seconds": 15.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 400,
+      "time_seconds": 16.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 425,
+      "time_seconds": 17.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 450,
+      "time_seconds": 18.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 475,
+      "time_seconds": 19.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 500,
+      "time_seconds": 20.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 525,
+      "time_seconds": 21.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 550,
+      "time_seconds": 22.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 575,
+      "time_seconds": 23.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 600,
+      "time_seconds": 24.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 625,
+      "time_seconds": 25.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 650,
+      "time_seconds": 26.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 675,
+      "time_seconds": 27.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 700,
+      "time_seconds": 28.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    },
+    {
+      "model_selected": "auto",
+      "model_used": "keras",
+      "model_fallback_reason": null,
+      "keras_input_shape": [
+        1,
+        608,
+        608,
+        3
+      ],
+      "keras_confidence_threshold": 0.01,
+      "keras_predictions_type": "<class 'dict'>",
+      "keras_output_keys": [
+        "tf_op_layer_concat_18"
+      ],
+      "keras_output_shapes": {
+        "tf_op_layer_concat_18": [
+          1,
+          0,
+          7
+        ]
+      },
+      "keras_output_stats": {
+        "tf_op_layer_concat_18": {
+          "min": null,
+          "max": null
+        }
+      },
+      "keras_detections": 0,
+      "frame_number": 725,
+      "time_seconds": 29.0,
+      "confidence_threshold": 0.01,
+      "scores_max": null
+    }
+  ]
+}

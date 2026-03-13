@@ -27,6 +27,7 @@ export default function AddVideoPage() {
   const [snapshotIntervalSeconds, setSnapshotIntervalSeconds] = useState(1);
   const [scanVideoName, setScanVideoName] = useState("");
   const [showResultsModal, setShowResultsModal] = useState(false);
+  const [debugInference, setDebugInference] = useState(false);
   const scanPollRef = useRef(null);
 
   const stopPolling = () => {
@@ -118,14 +119,17 @@ export default function AddVideoPage() {
         API_URL + "/camera/cameras/scan-video/start",
         {
           video_link: uploadedVideoLink,
+          // Let backend derive frame sampling from selected snapshot interval
+          // to avoid forcing a low-capture mode at all times.
           frame_skip_size: null,
-          confidence_threshold: 0.1,
+          confidence_threshold: 0.01,
           compute_device: computeDevice,
           model: selectedModel,
           snapshot_interval_seconds: Number(snapshotIntervalSeconds) || 1,
           min_weapon_images: 3,
           max_weapon_images: 5,
           capture_name: scanVideoName.trim(),
+          debug_inference: debugInference,
         },
         {
           headers: {
@@ -295,6 +299,21 @@ export default function AddVideoPage() {
                 ))}
               </select>
             </div>
+            <div className="flex items-center gap-2">
+              <input
+                id="debug_inference"
+                type="checkbox"
+                checked={debugInference}
+                onChange={(e) => setDebugInference(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <label
+                htmlFor="debug_inference"
+                className="text-xs font-semibold text-black-600"
+              >
+                {isRTL ? t("enableDebugInference") : t("enableDebugInference")}
+              </label>
+            </div>
           </div>
           {uploadMsg ? (
             <p className="mt-2 text-sm text-black-600">{uploadMsg}</p>
@@ -307,6 +326,23 @@ export default function AddVideoPage() {
           {scanMsg ? (
             <div className="mt-3 rounded-md border border-gray-300 bg-black-100 px-3 py-2 text-sm text-black">
               {scanMsg}
+              {scanResult?.model_used ? (
+                <div className="mt-2 text-xs text-black-600">
+                  {isRTL ? "النموذج المستخدم" : "Model used"}:{" "}
+                  {scanResult.model_used}
+                </div>
+              ) : null}
+              {scanResult?.debug_inference ? (
+                <div className="mt-1 text-xs text-black-600">
+                  {isRTL ? "تم تشغيل التشخيص" : "Debug inference enabled"}
+                </div>
+              ) : null}
+              {scanResult?.debug_path ? (
+                <div className="mt-1 text-xs text-black-600 break-all">
+                  {isRTL ? "ملف التشخيص" : "Debug file"}:{" "}
+                  {scanResult.debug_path}
+                </div>
+              ) : null}
               {isScanning ? (
                 <div className="mt-2">
                   <div className="h-2 w-full rounded bg-gray-200 overflow-hidden">
@@ -318,8 +354,10 @@ export default function AddVideoPage() {
                     />
                   </div>
                   <span className="block mt-1 text-xs">
-                    {t("scanProgress")}: {scanProgress}% - {t("remainingTime")}:{" "}
-                    {formatEta(scanEtaSeconds)}
+                    {t("scanProgress")}: {scanProgress}%
+                  </span>
+                  <span className="block mt-1 text-xs font-semibold">
+                    {t("remainingTime")}: {formatEta(scanEtaSeconds)}
                   </span>
                 </div>
               ) : null}

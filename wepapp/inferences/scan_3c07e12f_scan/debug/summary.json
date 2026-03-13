@@ -1,0 +1,111 @@
+{
+  "video_path": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\videos\\uploads\\1773118036_5825915780297924415.mp4",
+  "model_selected": "yolov8n",
+  "model_used": "yolov8n",
+  "model_fallback_reason": null,
+  "confidence_threshold": 0.05,
+  "frame_skip": 125,
+  "total_frames": 1016,
+  "processed_frames": 0,
+  "records": [
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 0,
+      "time_seconds": 0.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 125,
+      "time_seconds": 5.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 250,
+      "time_seconds": 10.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 375,
+      "time_seconds": 15.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 500,
+      "time_seconds": 20.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 625,
+      "time_seconds": 25.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 750,
+      "time_seconds": 30.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 875,
+      "time_seconds": 35.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    },
+    {
+      "model_selected": "yolov8n",
+      "model_used": "yolov8n",
+      "model_fallback_reason": null,
+      "yolo_weights": "C:\\Users\\abdallah\\Desktop\\train\\guns_final\\guns2\\wepapp\\yolov8n.pt",
+      "yolo_device": "cpu",
+      "frame_number": 1000,
+      "time_seconds": 40.0,
+      "confidence_threshold": 0.05,
+      "scores_max": null
+    }
+  ]
+}

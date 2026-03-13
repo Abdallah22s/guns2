@@ -149,6 +149,16 @@ def _parse_json_body():
     return data, None
 
 
+def _parse_bool(value, default=False):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+    return default
+
+
 @camera_bp.route("/")
 def home():
     cameras = Camera.query.all()
@@ -574,7 +584,7 @@ def start_scan_video():
         model_name = (data.get("model", "yolov8n") or "yolov8n").strip()
 
         try:
-            snapshot_interval_seconds = int(data.get("snapshot_interval_seconds", 5))
+            snapshot_interval_seconds = int(data.get("snapshot_interval_seconds", 2))
             if snapshot_interval_seconds <= 0:
                 raise ValueError("snapshot_interval_seconds must be > 0")
         except (ValueError, TypeError) as e:
@@ -596,7 +606,10 @@ def start_scan_video():
                 raise ValueError("confidence_threshold must be in (0, 1]")
         except (ValueError, TypeError) as e:
             logger.warning(f"Invalid confidence threshold: {e}")
-            return jsonify({"success": False, "error": "Invalid confidence threshold"}), 400
+            return (
+                jsonify({"success": False, "error": "Invalid confidence threshold"}),
+                400,
+            )
 
         # Optional direct frame skip override (process every Nth frame)
         frame_skip_override = None
@@ -608,9 +621,13 @@ def start_scan_video():
                     raise ValueError("frame_skip_size must be > 0")
             except (ValueError, TypeError) as e:
                 logger.warning(f"Invalid frame_skip_size: {e}")
-                return jsonify({"success": False, "error": "Invalid frame_skip_size"}), 400
+                return (
+                    jsonify({"success": False, "error": "Invalid frame_skip_size"}),
+                    400,
+                )
 
         capture_name = secure_filename(data.get("capture_name", "scan")) or "scan"
+        debug_inference = _parse_bool(data.get("debug_inference", False), False)
 
         video_path = _resolve_uploaded_video_path(video_link)
         if video_path is None:
@@ -636,6 +653,10 @@ def start_scan_video():
             "weapon_images": [],
             "weapon_images_count": 0,
             "model": model_name,
+            "model_selected": (model_name or "auto").strip().lower(),
+            "model_used": None,
+            "debug_inference": debug_inference,
+            "debug_path": None,
             "compute_device": compute_device,
             "confidence_threshold": confidence_threshold,
             "snapshot_interval_seconds": snapshot_interval_seconds,
@@ -653,23 +674,37 @@ def start_scan_video():
 
                 output_folder = WEPAPP_INFERENCES_DIR / scan_jobs[job_id]["scan_name"]
                 output_folder.mkdir(parents=True, exist_ok=True)
+                if scan_jobs[job_id].get("debug_inference"):
+                    scan_jobs[job_id][
+                        "debug_path"
+                    ] = f"/public/{scan_jobs[job_id]['scan_name']}/debug/summary.json"
 
                 # Get video info for frame_skip calculation
                 cap = cv2.VideoCapture(str(video_path))
                 fps = cap.get(cv2.CAP_PROP_FPS)
                 cap.release()
-                # Keep detection cadence reasonable even on high FPS videos.
+                # Respect user-selected snapshot interval by converting seconds to frames.
+                # Example: 2s interval at 30 FPS => process every 60th frame.
                 auto_frame_skip = max(int(fps * snapshot_interval_seconds), 1)
                 frame_skip = (
                     frame_skip_override
                     if frame_skip_override is not None
-                    else min(auto_frame_skip, 10)
+                    else auto_frame_skip
                 )
+                scan_started_at = time.time()
 
                 def update_progress(progress):
                     with scan_jobs_lock:
                         if job_id in scan_jobs:
+                            elapsed = max(time.time() - scan_started_at, 0.0)
+                            eta_seconds = None
+                            if progress and progress > 0:
+                                remaining_ratio = max(100 - progress, 0) / float(
+                                    progress
+                                )
+                                eta_seconds = int(elapsed * remaining_ratio)
                             scan_jobs[job_id]["progress"] = progress
+                            scan_jobs[job_id]["eta_seconds"] = eta_seconds
                             scan_jobs[job_id]["updated_at"] = time.time()
 
                 result = process_video_frames(
@@ -681,20 +716,37 @@ def start_scan_video():
                     confidence_threshold=confidence_threshold,
                     progress_callback=update_progress,
                     job_id=job_id,
+                    debug_config={
+                        "enabled": scan_jobs[job_id].get("debug_inference", False),
+                        "max_first_frames": 10,
+                        "max_random_frames": 10,
+                        "max_records": 30,
+                    },
+                    enable_tracking=True,
                 )
 
                 detected_weapons = [d["filename"] for d in result["detections"]]
 
                 with scan_jobs_lock:
                     if job_id in scan_jobs:
+                        fallback_reason = result.get("model_fallback_reason")
+                        base_message = (
+                            f"Scan completed. Found {len(detected_weapons)} weapons."
+                        )
+                        if fallback_reason:
+                            base_message = f"{base_message} {fallback_reason}"
+
                         scan_jobs[job_id]["status"] = "completed"
                         scan_jobs[job_id]["progress"] = 100
+                        scan_jobs[job_id]["eta_seconds"] = 0
                         scan_jobs[job_id]["weapon_found"] = len(detected_weapons) > 0
                         scan_jobs[job_id]["weapon_images"] = detected_weapons
                         scan_jobs[job_id]["weapon_images_count"] = len(detected_weapons)
-                        scan_jobs[job_id][
-                            "message"
-                        ] = f"Scan completed. Found {len(detected_weapons)} weapons."
+                        scan_jobs[job_id]["model_selected"] = result.get(
+                            "model_selected", scan_jobs[job_id]["model_selected"]
+                        )
+                        scan_jobs[job_id]["model_used"] = result.get("model_used")
+                        scan_jobs[job_id]["message"] = base_message
                         scan_jobs[job_id]["updated_at"] = time.time()
 
                 if detected_weapons:
@@ -710,6 +762,7 @@ def start_scan_video():
                 with scan_jobs_lock:
                     if job_id in scan_jobs:
                         scan_jobs[job_id]["status"] = "failed"
+                        scan_jobs[job_id]["eta_seconds"] = None
                         scan_jobs[job_id]["message"] = str(e)
                         scan_jobs[job_id]["updated_at"] = time.time()
 

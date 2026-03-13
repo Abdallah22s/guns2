@@ -7,10 +7,28 @@
 export default function ModelSelector({ value, onChange }) {
   const models = [
     {
-      id: "yolov8n",
-      label: "YOLOv8",
-      description: "Recommended",
+      id: "keras",
+      label: "Keras WeaponOct24",
+      description: "Custom weapon model (folder 11)",
+      recommended: false,
+    },
+    {
+      id: "threat_yolov8n",
+      label: "YOLO Threat",
+      description: "Gun, grenade, knife (HuggingFace)",
       recommended: true,
+    },
+    {
+      id: "firearm_yolov8n",
+      label: "YOLO Firearm",
+      description: "Gun detector (HuggingFace)",
+      recommended: false,
+    },
+    {
+      id: "weapon",
+      label: "YOLO Weapon",
+      description: "Gun, grenade, knife detector",
+      recommended: false,
     },
   ];
 

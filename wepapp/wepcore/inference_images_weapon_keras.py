@@ -115,6 +115,18 @@ def _get_keras_model(model_name=None):
             model = tf.saved_model.load(model_path)
             _model_cache[model_key] = model
             log.info("Loaded Keras weapon model successfully")
+
+            # Log model input signature for diagnostics
+            try:
+                serving_fn = model.signatures.get("serving_default")
+                if serving_fn is not None:
+                    input_specs = serving_fn.structured_input_signature
+                    log.info("Keras model input signature: %s", input_specs)
+                else:
+                    log.warning("Keras model has no 'serving_default' signature")
+            except Exception as sig_err:
+                log.warning("Could not inspect model signature: %s", sig_err)
+
             return model
         except Exception as e:
             log.error("Failed to load Keras model: %s", e)
@@ -134,6 +146,18 @@ def _preprocess_image(image, target_size=(608, 608)):
     return batched
 
 
+def _preprocess_image_uint8(image, target_size=(608, 608)):
+    """Preprocess image as uint8 [0-255] - some models expect this format."""
+    resized = cv2.resize(image, target_size)
+    rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+    batched = np.expand_dims(rgb, axis=0)  # uint8, no normalization
+    return batched
+
+
+def _sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
+
+
 def _postprocess_outputs(outputs, original_shape, confidence_threshold=0.3):
     """
     Postprocess model outputs to get detection results.
@@ -148,13 +172,23 @@ def _postprocess_outputs(outputs, original_shape, confidence_threshold=0.3):
             outputs = outputs.numpy()
 
         # Expected custom model format: (1, N, 7) where row = [y1,x1,y2,x2,c0,c1,c2]
-        if isinstance(outputs, np.ndarray) and outputs.ndim == 3 and outputs.shape[-1] >= 7:
+        if (
+            isinstance(outputs, np.ndarray)
+            and outputs.ndim == 3
+            and outputs.shape[-1] >= 7
+        ):
             rows = outputs[0]  # (N, 7)
             if rows.shape[0] == 0:
                 return detections
 
             boxes = rows[:, :4]
             class_scores = rows[:, 4:]
+            # Guard against empty class_scores before reduction operations
+            if class_scores.size == 0:
+                return detections
+            # If class scores look like logits, squash to [0, 1]
+            if np.nanmax(class_scores) > 1.5 or np.nanmin(class_scores) < 0:
+                class_scores = _sigmoid(class_scores)
             scores = class_scores.max(axis=1)
             classes = class_scores.argmax(axis=1).astype(int)
         else:
@@ -166,6 +200,32 @@ def _postprocess_outputs(outputs, original_shape, confidence_threshold=0.3):
                 boxes = outputs.get("boxes") or outputs.get("detection_boxes")
                 scores = outputs.get("scores") or outputs.get("detection_scores")
                 classes = outputs.get("classes") or outputs.get("detection_classes")
+
+                # Some SavedModels expose a single opaque output key
+                # (e.g. "tf_op_layer_concat_18") with shape (1, N, 7):
+                # [y1, x1, y2, x2, c0, c1, c2]. Normalize it here.
+                if boxes is None and scores is None:
+                    if len(outputs) == 1:
+                        lone_value = next(iter(outputs.values()))
+                        if hasattr(lone_value, "numpy"):
+                            lone_value = lone_value.numpy()
+                        lone_value = np.asarray(lone_value)
+                        if lone_value.ndim == 3 and lone_value.shape[-1] >= 7:
+                            rows = lone_value[0]
+                            if rows.shape[0] == 0:
+                                return detections
+                            boxes = rows[:, :4]
+                            class_scores = rows[:, 4:]
+                            # Guard against empty class_scores before reduction operations
+                            if class_scores.size == 0:
+                                return detections
+                            if (
+                                np.nanmax(class_scores) > 1.5
+                                or np.nanmin(class_scores) < 0
+                            ):
+                                class_scores = _sigmoid(class_scores)
+                            scores = class_scores.max(axis=1)
+                            classes = class_scores.argmax(axis=1).astype(int)
             elif isinstance(outputs, (list, tuple)) and len(outputs) >= 3:
                 boxes, scores, classes = outputs[0], outputs[1], outputs[2]
             elif isinstance(outputs, np.ndarray):
@@ -210,6 +270,9 @@ def _postprocess_outputs(outputs, original_shape, confidence_threshold=0.3):
             # custom model returns [y1,x1,y2,x2] normalized
             if np.max(np.abs(box)) <= 1.5:
                 y1, x1, y2, x2 = box
+                # If invalid, assume [x1,y1,x2,y2]
+                if x2 <= x1 or y2 <= y1:
+                    x1, y1, x2, y2 = box
                 x1 = int(x1 * orig_w)
                 y1 = int(y1 * orig_h)
                 x2 = int(x2 * orig_w)
@@ -217,6 +280,8 @@ def _postprocess_outputs(outputs, original_shape, confidence_threshold=0.3):
             else:
                 # absolute coords on 608 input, same [y1,x1,y2,x2] ordering
                 y1, x1, y2, x2 = box
+                if x2 <= x1 or y2 <= y1:
+                    x1, y1, x2, y2 = box
                 x1 = int(x1 * (orig_w / target_w))
                 y1 = int(y1 * (orig_h / target_h))
                 x2 = int(x2 * (orig_w / target_w))
@@ -268,17 +333,19 @@ def inference_images_weapon(
     model_name=None,
     compute_device="cpu",
     confidence_threshold=0.3,
+    debug=None,
 ):
     """
     Keras weapon inference function.
 
-    Returns: (image2, start_time, end_time, scores, classes)
+    Returns: (image2, start_time, end_time, scores, classes, boxes)
     """
     start_time = time.time()
     end_time = time.time()
     image2 = image_mask1.copy()
     out_scores = np.zeros((1, 0), dtype=np.float32)
     out_classes = np.zeros((1, 0), dtype=np.float32)
+    out_boxes = np.zeros((0, 4), dtype=np.float32)  # Add boxes return
 
     try:
         model = _get_keras_model(model_name)
@@ -286,7 +353,7 @@ def inference_images_weapon(
             log.error("No Keras model available for inference")
             return (image2, start_time, end_time, out_scores, out_classes)
 
-        # Preprocess image
+        # Preprocess image - try float32 [0,1] first (standard)
         input_tensor = _preprocess_image(image_mask1)
 
         # Run inference
@@ -302,12 +369,58 @@ def inference_images_weapon(
             else:
                 log.warning("GPU requested but not available, using CPU")
 
-        # Run inference
-        predictions = model(input_tensor, training=False)
+        # Run inference through serving signature when available.
+        # Some SavedModels return richer detections only via serving_default.
+        serving_fn = None
+        try:
+            serving_fn = model.signatures.get("serving_default")
+        except Exception:
+            serving_fn = None
+
+        if serving_fn is not None:
+            predictions = serving_fn(tf.convert_to_tensor(input_tensor))
+        else:
+            predictions = model(input_tensor, training=False)
+
+        # Note: uint8 retry was removed because the model does NOT support uint8 input.
+        # The model expects float32 [0,1] input format. When it returns 0 detections,
+        # this is normal behavior for frames without weapons - we just continue processing.
+        # Some frames will have detections (as confirmed by test_models.py showing 2/21 frames with detections).
 
         # Handle different model output formats
         if hasattr(predictions, "numpy"):
             predictions = predictions.numpy()
+        if isinstance(debug, dict):
+            debug["keras_input_shape"] = list(input_tensor.shape)
+            debug["keras_confidence_threshold"] = float(confidence_threshold)
+            debug["keras_predictions_type"] = str(type(predictions))
+            if isinstance(predictions, dict):
+                debug["keras_output_keys"] = list(predictions.keys())
+                shapes = {}
+                stats = {}
+                for k, v in predictions.items():
+                    try:
+                        arr = np.asarray(v)
+                        shapes[k] = list(arr.shape)
+                        stats[k] = {
+                            "min": float(np.min(arr)) if arr.size else None,
+                            "max": float(np.max(arr)) if arr.size else None,
+                        }
+                    except Exception:
+                        shapes[k] = None
+                        stats[k] = None
+                debug["keras_output_shapes"] = shapes
+                debug["keras_output_stats"] = stats
+            else:
+                try:
+                    arr = np.asarray(predictions)
+                    debug["keras_output_shape"] = list(arr.shape)
+                    debug["keras_output_stats"] = {
+                        "min": float(np.min(arr)) if arr.size else None,
+                        "max": float(np.max(arr)) if arr.size else None,
+                    }
+                except Exception:
+                    debug["keras_output_shape"] = None
 
         # Post-process outputs
         detections = _postprocess_outputs(
@@ -331,10 +444,14 @@ def inference_images_weapon(
             )
 
             log.info("Keras inference finished, detections: %s", len(detections))
+            if isinstance(debug, dict):
+                debug["keras_detections"] = len(detections)
         else:
             log.info("Keras inference finished, no detections")
+            if isinstance(debug, dict):
+                debug["keras_detections"] = 0
 
     except Exception as exc:
         log.error("Keras inference exception: %s", exc)
 
-    return (image2, start_time, end_time, out_scores, out_classes)
+    return (image2, start_time, end_time, out_scores, out_classes, out_boxes)
