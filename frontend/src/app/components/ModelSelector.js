@@ -9,26 +9,14 @@ export default function ModelSelector({ value, onChange }) {
     {
       id: "keras",
       label: "Keras WeaponOct24",
-      description: "Custom weapon model",
-      recommended: true,
-    },
-    {
-      id: "epoch30",
-      label: "YOLO epoch30",
-      description: "Pistol & Knife (folder 11)",
-      recommended: false,
-    },
-    {
-      id: "hadi_yolov8",
-      label: "YOLO Hadi",
-      description: "Pistol & Knife (HuggingFace)",
+      description: "Custom weapon model (folder 11)",
       recommended: false,
     },
     {
       id: "threat_yolov8n",
       label: "YOLO Threat",
       description: "Gun, grenade, knife (HuggingFace)",
-      recommended: false,
+      recommended: true,
     },
     {
       id: "firearm_yolov8n",
@@ -40,12 +28,6 @@ export default function ModelSelector({ value, onChange }) {
       id: "weapon",
       label: "YOLO Weapon",
       description: "Gun, grenade, knife detector",
-      recommended: false,
-    },
-    {
-      id: "yolov8n",
-      label: "YOLOv8",
-      description: "Fallback model",
       recommended: false,
     },
   ];

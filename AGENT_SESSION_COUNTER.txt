@@ -1,0 +1,5 @@
+total_sessions: 2
+current_skill_cycle: 0
+last_skill_update: 2024-01-01
+last_report: 2024-01-01
+project_start: 2026-03-11

@@ -94,6 +94,7 @@ def resolve_model_selection(model_name: str) -> tuple[str, str, str | None]:
         "weapon",
         "weapon_yolo",
         "background1k",
+        "yolov8_background1k",
     ]
     if raw in weapon_model_names:
         # Look for the specific model in weaponresource
@@ -110,6 +111,7 @@ def resolve_model_selection(model_name: str) -> tuple[str, str, str | None]:
             "weapon": "weapon_yolo.pt",
             "weapon_yolo": "weapon_yolo.pt",
             "background1k": "yolov8_background1k_best.pt",
+            "yolov8_background1k": "yolov8_background1k_best.pt",
         }
         model_file = model_file_map.get(raw)
         if model_file:

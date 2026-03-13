@@ -115,7 +115,7 @@ export default function AddVideoPage() {
     setScanMsg(t("processingVideoPleaseWait"));
     stopPolling();
     try {
-          const startResponse = await axios.post(
+      const startResponse = await axios.post(
         API_URL + "/camera/cameras/scan-video/start",
         {
           video_link: uploadedVideoLink,
