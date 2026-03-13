@@ -19,7 +19,7 @@ export default function ProcessVideoPage({ params }) {
   const t = useTranslations(isRTL);
 
   const [selectedFile, setSelectedFile] = useState(null);
-  const [computeDevice, setComputeDevice] = useState("gpu");
+  const [computeDevice, setComputeDevice] = useState("cpu");
   const [gpuAvailable, setGpuAvailable] = useState(true);
   const [selectedModel, setSelectedModel] = useState("yolov8n");
   const [scanInterval, setScanInterval] = useState(2);
@@ -31,6 +31,7 @@ export default function ProcessVideoPage({ params }) {
   const [weapons, setWeapons] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
+  const [gpuWarning, setGpuWarning] = useState("");
 
   const scanPollRef = useRef(null);
 
@@ -50,8 +51,24 @@ export default function ProcessVideoPage({ params }) {
       .catch(() => {
         setGpuAvailable(true);
       });
-    return () => stopPolling();
   }, []);
+
+  // Handle GPU warning when user selects GPU but it's not available
+  const handleComputeDeviceChange = useCallback(
+    (device) => {
+      setComputeDevice(device);
+      if (device === "gpu" && !gpuAvailable) {
+        setGpuWarning(
+          isRTL
+            ? "GPU غير متاح - سيتم استخدام CPU"
+            : "GPU not available - will use CPU",
+        );
+      } else {
+        setGpuWarning("");
+      }
+    },
+    [gpuAvailable, isRTL],
+  );
 
   const handleFileSelect = useCallback((file) => {
     setSelectedFile(file);
@@ -128,7 +145,7 @@ export default function ProcessVideoPage({ params }) {
           compute_device: computeDevice,
           model: selectedModel,
           snapshot_interval_seconds: scanInterval,
-          confidence_threshold: 0.01,
+          confidence_threshold: 0.3,
           capture_name: scanVideoName.trim(),
         },
       );
@@ -283,13 +300,11 @@ export default function ProcessVideoPage({ params }) {
             {/* Compute Device */}
             <ComputeDeviceSelector
               value={computeDevice}
-              onChange={setComputeDevice}
+              onChange={handleComputeDeviceChange}
               isRTL={isRTL}
             />
-            {computeDevice === "gpu" && !gpuAvailable && (
-              <p className="text-sm font-semibold text-red">
-                GPU is unavailable. Processing will run on CPU.
-              </p>
+            {gpuWarning && (
+              <p className="text-sm font-semibold text-red">{gpuWarning}</p>
             )}
 
             <div className="w-full">

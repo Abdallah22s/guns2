@@ -722,7 +722,9 @@ def start_scan_video():
                         "max_random_frames": 10,
                         "max_records": 30,
                     },
-                    enable_tracking=True,
+                    # Enable tracking only for keras model (better results)
+                    # Other models capture too many false positives with tracking
+                    enable_tracking=(model_name == "keras"),
                 )
 
                 detected_weapons = [d["filename"] for d in result["detections"]]

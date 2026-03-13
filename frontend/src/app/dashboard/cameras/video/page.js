@@ -27,7 +27,6 @@ export default function AddVideoPage() {
   const [snapshotIntervalSeconds, setSnapshotIntervalSeconds] = useState(1);
   const [scanVideoName, setScanVideoName] = useState("");
   const [showResultsModal, setShowResultsModal] = useState(false);
-  const [debugInference, setDebugInference] = useState(false);
   const scanPollRef = useRef(null);
 
   const stopPolling = () => {
@@ -122,14 +121,13 @@ export default function AddVideoPage() {
           // Let backend derive frame sampling from selected snapshot interval
           // to avoid forcing a low-capture mode at all times.
           frame_skip_size: null,
-          confidence_threshold: 0.01,
+          confidence_threshold: 0.3,
           compute_device: computeDevice,
           model: selectedModel,
           snapshot_interval_seconds: Number(snapshotIntervalSeconds) || 1,
           min_weapon_images: 3,
           max_weapon_images: 5,
           capture_name: scanVideoName.trim(),
-          debug_inference: debugInference,
         },
         {
           headers: {
@@ -298,21 +296,6 @@ export default function AddVideoPage() {
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                id="debug_inference"
-                type="checkbox"
-                checked={debugInference}
-                onChange={(e) => setDebugInference(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <label
-                htmlFor="debug_inference"
-                className="text-xs font-semibold text-black-600"
-              >
-                {isRTL ? t("enableDebugInference") : t("enableDebugInference")}
-              </label>
             </div>
           </div>
           {uploadMsg ? (
