@@ -121,7 +121,7 @@ export default function AddVideoPage() {
           // Let backend derive frame sampling from selected snapshot interval
           // to avoid forcing a low-capture mode at all times.
           frame_skip_size: null,
-          confidence_threshold: 0.01,
+          confidence_threshold: 0.3,
           compute_device: computeDevice,
           model: selectedModel,
           snapshot_interval_seconds: Number(snapshotIntervalSeconds) || 1,

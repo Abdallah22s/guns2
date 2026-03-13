@@ -145,7 +145,7 @@ export default function ProcessVideoPage({ params }) {
           compute_device: computeDevice,
           model: selectedModel,
           snapshot_interval_seconds: scanInterval,
-          confidence_threshold: 0.01,
+          confidence_threshold: 0.3,
           capture_name: scanVideoName.trim(),
         },
       );
